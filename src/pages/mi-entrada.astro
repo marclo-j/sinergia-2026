@@ -1,0 +1,21 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { SiteHeader } from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter.astro";
+import { MiEntrada } from "@/components/islands/MiEntrada";
+---
+
+<Layout
+  title="Mi entrada y código QR | Sinergia Vol. II"
+  description="Consulta tu entrada digital de Sinergia Vol. II: código QR de acceso, estado del pago y entrega de materiales."
+  ogTitle="Mi entrada | Sinergia Vol. II"
+  ogDescription="Tu QR de acceso y el check de tus materiales."
+>
+	<div class="min-h-screen bg-background">
+		<SiteHeader client:load currentPath="/mi-entrada" />
+
+		<MiEntrada client:load />
+
+		<SiteFooter />
+	</div>
+</Layout>

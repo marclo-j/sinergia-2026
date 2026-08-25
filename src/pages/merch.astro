@@ -1,0 +1,31 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { SiteHeader } from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter.astro";
+import { MerchStore } from "@/components/islands/MerchStore";
+---
+
+<Layout
+  title="Merch oficial | Sinergia Vol. II"
+  description="Polos, hoodies, tazas y stickers oficiales de Sinergia Vol. II. Reserva tu merch y recógelo en el evento."
+  ogTitle="Merch oficial | Sinergia Vol. II"
+  ogDescription="Reserva tu merch de la conferencia y recógelo en el evento."
+>
+	<div class="min-h-screen bg-background">
+		<SiteHeader client:load currentPath="/merch" />
+
+		<section class="grain-overlay relative surface-heat">
+			<div class="relative z-10 mx-auto max-w-5xl px-4 py-14">
+				<h1 class="font-display text-4xl text-primary-foreground md:text-6xl">Merch oficial</h1>
+				<p class="mt-3 max-w-xl text-primary-foreground/90">
+					Llévate un recuerdo de Sinergia Vol. II. Reserva aquí y recoge tu pedido en el stand
+					durante la conferencia.
+				</p>
+			</div>
+		</section>
+
+		<MerchStore client:visible />
+
+		<SiteFooter />
+	</div>
+</Layout>

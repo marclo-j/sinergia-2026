@@ -1,0 +1,18 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { SiteHeader } from "@/components/SiteHeader";
+import { AdminPanel } from "@/components/islands/AdminPanel";
+---
+
+<Layout
+  title="Panel de administración | Sinergia Vol. II"
+  description="Panel interno para validar pagos, escanear códigos QR y controlar la entrega de materiales de Sinergia Vol. II."
+  ogTitle="Panel admin | Sinergia Vol. II"
+  ogDescription="Validación de pagos y control de acceso."
+  noindex
+>
+	<div class="min-h-screen bg-background">
+		<SiteHeader client:load currentPath="/admin" />
+		<AdminPanel client:load />
+	</div>
+</Layout>
