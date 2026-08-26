@@ -20,28 +20,28 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
     window.location.href = "/";
   };
 
-  const isActive = (to: string) => (to === "/" ? currentPath === "/" : currentPath.startsWith(to));
+  const isActive = (to: string) =>
+    to === "/" ? currentPath === "/" : currentPath.startsWith(to);
 
   return (
     <header className="sticky top-0 z-50 bg-primary text-primary-foreground">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <a href="/" className="font-display text-sm tracking-[0.2em] uppercase">
-          Sinergia<span className="text-accent"> Vol. II</span>
-        </a>
-
-        <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
+      <div className="mx-auto flex max-w-6xl items-center justify-center gap-4 px-4 py-7">
+        <nav className="font-nav hidden items-center gap-16 text-2xl font-medium md:flex">
           {links.map((l) => (
             <a
               key={l.to}
               href={l.to}
-              className={`transition-colors hover:text-accent ${isActive(l.to) ? "text-accent" : ""}`}
+              className="font-nav transition-colors hover:text-accent"
             >
               {l.label}
             </a>
           ))}
           {user ? (
             <>
-              <a href="/mi-entrada" className="transition-colors hover:text-accent">
+              <a
+                href="/mi-entrada"
+                className="font-nav transition-colors hover:text-accent"
+              >
                 Mi entrada
               </a>
               <Button variant="ghost" size="sm" onClick={signOut}>
@@ -49,7 +49,10 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
               </Button>
             </>
           ) : (
-            <a href="/auth" className="transition-colors hover:text-accent">
+            <a
+              href="/auth"
+              className="font-nav transition-colors hover:text-accent"
+            >
               Ingresar
             </a>
           )}
@@ -66,18 +69,31 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
       </div>
 
       {open && (
-        <nav className="flex flex-col gap-1 border-t border-primary-foreground/20 px-4 pb-4 text-sm md:hidden">
+        <nav className="font-nav flex flex-col gap-1 border-t border-primary-foreground/20 px-4 pb-4 text-sm md:hidden">
           {links.map((l) => (
-            <a key={l.to} href={l.to} className="py-2" onClick={() => setOpen(false)}>
+            <a
+              key={l.to}
+              href={l.to}
+              className="py-2"
+              onClick={() => setOpen(false)}
+            >
               {l.label}
             </a>
           ))}
           {user ? (
             <>
-              <a href="/mi-entrada" className="py-2" onClick={() => setOpen(false)}>
+              <a
+                href="/mi-entrada"
+                className="py-2"
+                onClick={() => setOpen(false)}
+              >
                 Mi entrada
               </a>
-              <button type="button" className="py-2 text-left" onClick={signOut}>
+              <button
+                type="button"
+                className="py-2 text-left"
+                onClick={signOut}
+              >
                 Salir
               </button>
             </>

@@ -1,3 +1,6 @@
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
 @import "tailwindcss" source(none);
 @source "../";
 
@@ -59,6 +62,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --font-display: "Archivo Black", "Archivo", sans-serif;
   --font-sans: "Barlow", system-ui, sans-serif;
+  --font-nav: "Poppins", "Barlow", system-ui, sans-serif;
 }
 
 :root {
@@ -73,7 +77,7 @@
   --popover-foreground: oklch(0.21 0.03 40);
 
   /* carmesí de imprenta */
-  --primary: oklch(0.44 0.16 20);
+  --primary: #a82a2a;
   --primary-foreground: oklch(0.98 0.01 85);
 
   /* naranja incandescente */
@@ -124,7 +128,11 @@
     oklch(0.56 0.2 32) 45%,
     oklch(0.72 0.18 52) 100%
   );
-  --gradient-dusk: linear-gradient(160deg, oklch(0.3 0.11 22) 0%, oklch(0.5 0.2 258) 100%);
+  --gradient-dusk: linear-gradient(
+    160deg,
+    oklch(0.3 0.11 22) 0%,
+    oklch(0.5 0.2 258) 100%
+  );
   --shadow-print: 6px 6px 0 0 oklch(0.22 0.02 30 / 0.85);
   --shadow-soft: 0 18px 40px -22px oklch(0.22 0.02 30 / 0.6);
 }
@@ -209,4 +217,10 @@
 @utility vertical-text {
   writing-mode: vertical-rl;
   text-orientation: mixed;
+}
+
+@utility vertical-text-cc {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
 }

@@ -3,8 +3,9 @@ import Layout from "@/layouts/Layout.astro";
 import { SiteHeader } from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter.astro";
 import { Countdown } from "@/components/islands/Countdown";
-import texture from "@/assets/texture-warm.jpg";
 import { ArrowRight } from "lucide-react";
+import texture from "@/assets/texture-warm.jpg";
+import sinergia from "@/public/hero/sinergia.jpg";
 
 const pillars = [
   { n: "01", title: "Adoración", text: "No se trata solamente de música. Se trata de una vida rendida a Dios." },
@@ -26,45 +27,54 @@ const days = [
   ogTitle="Sinergia Vol. II — A través del tiempo"
   ogDescription="Tres días de adoración, talleres y conexión. Preventa S/ 10."
 >
-	<div class="min-h-screen bg-background">
+	<div class="bg-background">
 		<SiteHeader client:load currentPath="/" />
 
 		<!-- HERO -->
-		<section class="grain-overlay relative overflow-hidden">
+		<section class="grain-overlay relative h-[985px]">
 			<img
-				src={texture.src}
+				src="/hero/bg.png"
 				alt=""
-				width={1920}
-				height={1088}
-				class="absolute inset-0 size-full object-cover"
+				width={1458}
+				height={800}
+				class="object-cover absolute inset-0 z-[1] h-full w-full"
 			/>
 			<div class="absolute inset-0 surface-heat opacity-80"></div>
-			<div class="relative z-10 mx-auto flex max-w-6xl flex-col gap-10 px-4 py-20 md:py-28 lg:flex-row lg:items-end">
-				<div class="flex-1">
-					<h1 class="font-display text-5xl leading-[0.9] text-primary-foreground sm:text-6xl md:text-7xl">
+			<img src="/hero/sinergia.jpg" alt="" class="absolute inset-0 z-[5] mx-auto my-auto min-h-[870px] w-auto object-contain" />
+
+			<div class="relative z-10 flex min-h-[calc(985px-10rem)] flex-col justify-end gap-10 pl-4 pr-4 pt-10 pb-4 md:pl-10 md:pr-10 md:pt-16 md:pb-6">
+				<div class="flex flex-col gap-6">
+					<h1 class="font-display text-5xl leading-[0.9] text-primary-foreground md:text-7xl lg:text-8xl">
 						A través<br />del tiempo
 					</h1>
-					<p class="mt-5 max-w-md text-lg font-medium text-primary-foreground/90 uppercase">
+					<p class="max-w-md text-3xl font-medium text-primary-foreground uppercase">
 						Todo cambia, Él permanece
 					</p>
 					<a
 						href="/inscripcion"
-						class="mt-8 inline-flex items-center gap-3 bg-ink px-6 py-3 font-display text-sm tracking-wide text-background transition-transform hover:-translate-y-0.5"
+						class="inline-flex items-center gap-4 px-5 py-4 font-display text-3xl tracking-wide bg-[#102a49] transition-transform hover:-translate-y-0.5 self-start text-white"
 					>
-						Quiero ser parte <ArrowRight className="size-4" />
+						Quiero ser parte <ArrowRight className="size-8" />
 					</a>
-					<p class="mt-5 font-display text-sm text-primary-foreground">
-						Preventa S/ 10 · cupos limitados
+					<p class="font-display text-2xl text-primary-foreground">
+						Preventa con cupos limitados
 					</p>
 				</div>
+			</div>
 
-				<div class="flex gap-6 text-primary-foreground">
-					{days.map((d) => (
-						<div class="flex items-start gap-2">
-							<span class="font-display text-5xl md:text-6xl">{d.n}</span>
-							<span class="vertical-text pt-1 text-xs tracking-[0.25em] uppercase">{d.month}</span>
-						</div>
-					))}
+			<div class="absolute top-16 md:top-24 right-4 z-20 flex flex-col items-end gap-10 md:gap-16 font-nav text-primary-foreground md:right-10">
+				{/* Octubre — compartido entre 30 y 31 */}
+				<div class="flex items-end gap-3">
+					<div class="flex flex-col gap-5 items-end">
+						<span class="font-display text-6xl md:text-8xl leading-none">30</span>
+						<span class="font-display text-6xl md:text-8xl leading-none">31</span>
+					</div>
+					<span class="vertical-text-cc text-xl md:text-3xl tracking-[0.25em] uppercase">Octubre</span>
+				</div>
+				{/* Noviembre — solo 01 */}
+				<div class="flex gap-2">
+					<span class="font-display text-6xl md:text-8xl leading-none">01</span>
+					<span class="vertical-text-cc text-xl md:text-3xl tracking-[0.25em] uppercase">Noviembre</span>
 				</div>
 			</div>
 		</section>
@@ -84,7 +94,7 @@ const days = [
 		<section class="paper-kraft">
 			<div class="mx-auto grid max-w-6xl gap-6 px-4 py-16 md:grid-cols-[auto_1fr_auto]">
 				<div class="print-block hidden items-center justify-center bg-sand px-4 py-6 md:flex">
-					<h2 class="vertical-text font-display text-2xl text-kraft-foreground">¿Qué es Sinergia?</h2>
+					<h2 class="vertical-text-cc font-display text-2xl text-kraft-foreground">¿Qué es Sinergia?</h2>
 				</div>
 				<div class="print-block bg-sand/60 p-6 md:p-8">
 					<h2 class="font-display text-lg tracking-[0.15em] text-kraft-foreground md:hidden">
@@ -105,7 +115,7 @@ const days = [
 					</p>
 				</div>
 				<div class="print-block hidden items-center justify-center bg-sand px-4 py-6 md:flex">
-					<p class="vertical-text font-display text-4xl text-kraft-foreground">2026</p>
+					<p class="vertical-text-cc font-display text-4xl text-kraft-foreground">2026</p>
 				</div>
 			</div>
 		</section>
