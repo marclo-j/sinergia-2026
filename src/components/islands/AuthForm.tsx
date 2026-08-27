@@ -74,6 +74,7 @@ export function AuthForm() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  preserveCase
                   value={password}
                   maxLength={72}
                   autoComplete="current-password"

@@ -2,15 +2,22 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, onWheel, ...props }, ref) => {
+export interface InputProps extends React.ComponentProps<"input"> {
+  // Para inputs de contraseña con botón de "mostrar": type pasa a "text" al
+  // revelarla, así que el type solo no alcanza para excluir la mayúscula.
+  preserveCase?: boolean;
+}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, onWheel, preserveCase, ...props }, ref) => {
+    // Correo y contraseña quedan fuera: no deben verse distintos a lo que se escribió.
+    const skipUppercase = preserveCase || type === "password" || type === "email";
     return (
       <input
         type={type}
         className={cn(
           "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          // La contraseña queda fuera: no debe verse distinta a lo que se escribió.
-          type !== "password" && "uppercase",
+          !skipUppercase && "uppercase",
           className,
         )}
         onWheel={(e) => {

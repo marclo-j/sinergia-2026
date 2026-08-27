@@ -45,6 +45,9 @@ import { IconBadge } from "@/components/ui/icon-badge";
 import { RetroWindow } from "@/components/ui/retro-window";
 
 // Entrada estándar (fade + slide-up) para las secciones de la página.
+// Valor centinela para la opción "Otros" de los <select> de iglesia/ministerio.
+const OTRO = "__otro__";
+
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
   animate: { opacity: 1, y: 0 },
@@ -126,6 +129,8 @@ function SignupSection({ onDone }: { onDone: () => Promise<void> }) {
   const [busy, setBusy] = useState(false);
   const [iglesias, setIglesias] = useState<CatalogItem[]>([]);
   const [ministerios, setMinisterios] = useState<CatalogItem[]>([]);
+  const [iglesiaOtro, setIglesiaOtro] = useState(false);
+  const [ministerioOtro, setMinisterioOtro] = useState(false);
 
   useEffect(() => {
     fetchCatalog("iglesias").then(({ items }) => setIglesias(items)).catch(() => {});
@@ -224,37 +229,99 @@ function SignupSection({ onDone }: { onDone: () => Promise<void> }) {
                         <Label htmlFor="iglesia" className="flex items-center gap-3">
                           <IconBadge icon={Church} /> Iglesia
                         </Label>
-                        <Select
-                          id="iglesia"
-                          value={signup.iglesia}
-                          onChange={(e) => setSignup((prev) => ({ ...prev, iglesia: e.target.value }))}
-                          className="bg-card"
-                        >
-                          <option value="">Selecciona tu iglesia (opcional)</option>
-                          {iglesias.map((i) => (
-                            <option key={i.id} value={i.name}>
-                              {i.name}
-                            </option>
-                          ))}
-                        </Select>
+                        {iglesiaOtro ? (
+                          <div className="space-y-1">
+                            <Input
+                              id="iglesia"
+                              value={signup.iglesia}
+                              autoFocus
+                              placeholder="Escribe el nombre de tu iglesia"
+                              onChange={(e) => setSignup((prev) => ({ ...prev, iglesia: e.target.value }))}
+                              className="bg-card"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIglesiaOtro(false);
+                                setSignup((prev) => ({ ...prev, iglesia: "" }));
+                              }}
+                              className="text-xs underline underline-offset-2"
+                            >
+                              Elegir de la lista
+                            </button>
+                          </div>
+                        ) : (
+                          <Select
+                            id="iglesia"
+                            value={signup.iglesia}
+                            onChange={(e) => {
+                              if (e.target.value === OTRO) {
+                                setIglesiaOtro(true);
+                                setSignup((prev) => ({ ...prev, iglesia: "" }));
+                              } else {
+                                setSignup((prev) => ({ ...prev, iglesia: e.target.value }));
+                              }
+                            }}
+                            className="bg-card"
+                          >
+                            <option value="">Selecciona tu iglesia (opcional)</option>
+                            {iglesias.map((i) => (
+                              <option key={i.id} value={i.name}>
+                                {i.name}
+                              </option>
+                            ))}
+                            <option value={OTRO}>Otros</option>
+                          </Select>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="ministerio" className="flex items-center gap-3">
                           <IconBadge icon={Users} /> Ministerio
                         </Label>
-                        <Select
-                          id="ministerio"
-                          value={signup.ministerio}
-                          onChange={(e) => setSignup((prev) => ({ ...prev, ministerio: e.target.value }))}
-                          className="bg-card"
-                        >
-                          <option value="">Selecciona tu ministerio (opcional)</option>
-                          {ministerios.map((m) => (
-                            <option key={m.id} value={m.name}>
-                              {m.name}
-                            </option>
-                          ))}
-                        </Select>
+                        {ministerioOtro ? (
+                          <div className="space-y-1">
+                            <Input
+                              id="ministerio"
+                              value={signup.ministerio}
+                              autoFocus
+                              placeholder="Escribe el nombre de tu ministerio"
+                              onChange={(e) => setSignup((prev) => ({ ...prev, ministerio: e.target.value }))}
+                              className="bg-card"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMinisterioOtro(false);
+                                setSignup((prev) => ({ ...prev, ministerio: "" }));
+                              }}
+                              className="text-xs underline underline-offset-2"
+                            >
+                              Elegir de la lista
+                            </button>
+                          </div>
+                        ) : (
+                          <Select
+                            id="ministerio"
+                            value={signup.ministerio}
+                            onChange={(e) => {
+                              if (e.target.value === OTRO) {
+                                setMinisterioOtro(true);
+                                setSignup((prev) => ({ ...prev, ministerio: "" }));
+                              } else {
+                                setSignup((prev) => ({ ...prev, ministerio: e.target.value }));
+                              }
+                            }}
+                            className="bg-card"
+                          >
+                            <option value="">Selecciona tu ministerio (opcional)</option>
+                            {ministerios.map((m) => (
+                              <option key={m.id} value={m.name}>
+                                {m.name}
+                              </option>
+                            ))}
+                            <option value={OTRO}>Otros</option>
+                          </Select>
+                        )}
                       </div>
                     </>
                   )}
@@ -285,6 +352,7 @@ function SignupSection({ onDone }: { onDone: () => Promise<void> }) {
                   <Input
                     id="signupPassword"
                     type={showPassword ? "text" : "password"}
+                    preserveCase
                     value={signup.password}
                     maxLength={72}
                     autoComplete="new-password"
@@ -307,6 +375,7 @@ function SignupSection({ onDone }: { onDone: () => Promise<void> }) {
                 <Input
                   id="confirmPassword"
                   type={showPassword ? "text" : "password"}
+                  preserveCase
                   value={signup.confirmPassword}
                   maxLength={72}
                   autoComplete="new-password"
