@@ -8,6 +8,14 @@
  * Paleta: carmesí impreso, naranja incandescente, azul eléctrico, papel kraft.
  */
 
+@font-face {
+  font-family: "Black Magnum";
+  src: url("/fonts/BlackMagnum.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -57,8 +65,9 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-display: "Archivo Black", "Archivo", sans-serif;
+  --font-display: "Black Magnum", "Archivo Black", "Archivo", sans-serif;
   --font-sans: "Barlow", system-ui, sans-serif;
+  --font-pixel: "Silkscreen", "Courier New", monospace;
 }
 
 :root {
@@ -161,6 +170,7 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    cursor: url("/cursor/roret_cursor/cursor_default.png") 2 2, auto;
   }
 
   h1,
@@ -170,6 +180,42 @@
     letter-spacing: -0.01em;
     text-transform: uppercase;
   }
+
+  /* Cursor retro: lápiz al pasar sobre texto (título, párrafos, etc).
+     Ojo: no incluye `span` a propósito — muchos botones/labels usan spans
+     para su texto y necesitan seguir mostrando la manito de "cursor-pointer". */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  blockquote,
+  dt,
+  dd {
+    cursor: url("/cursor/roret_cursor/cursor_pen.png") 2 18, text;
+  }
+
+  /* Cursor retro: puntero tipo mano en todo lo clickeable. */
+  a,
+  button,
+  label,
+  select,
+  summary,
+  [role="button"],
+  [role="tab"],
+  input[type="checkbox"],
+  input[type="radio"],
+  .cursor-pointer {
+    cursor: url("/cursor/roret_cursor/cursor_select.png") 4 0, pointer !important;
+  }
+
+  button:disabled,
+  [aria-disabled="true"],
+  .cursor-not-allowed {
+    cursor: url("/cursor/roret_cursor/cursor_dead.png") 10 10, not-allowed !important;
+  }
 }
 
 @utility surface-heat {
@@ -178,6 +224,13 @@
 
 @utility surface-dusk {
   background-image: var(--gradient-dusk);
+}
+
+@utility surface-flyer {
+  background-image: url("/img/SINERGIA_SCREEN_Principal_fondo.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 @utility grain-overlay {
@@ -209,4 +262,69 @@
 @utility vertical-text {
   writing-mode: vertical-rl;
   text-orientation: mixed;
+}
+
+/* Titular grueso con contorno + sombra dura, como el logotipo "SINERGIA". */
+@utility text-pop {
+  -webkit-text-stroke: 2px var(--ink);
+  text-shadow: 5px 5px 0 var(--ink);
+  paint-order: stroke fill;
+}
+
+/* Líneas de escaneo tipo monitor CRT — se combina con grain-overlay. */
+@utility crt-scanlines {
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      oklch(0 0 0 / 0.16) 0px,
+      oklch(0 0 0 / 0.16) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+}
+
+/* Sombra suave para texto flotando directo sobre el fondo con textura. */
+@utility text-shadow-hard {
+  text-shadow: 0 2px 8px oklch(0 0 0 / 0.55);
+}
+
+/* Resplandor neón — usar con un color de texto (currentColor). */
+@utility text-glow {
+  text-shadow:
+    0 0 4px currentColor,
+    0 0 14px currentColor,
+    0 0 28px currentColor;
+}
+
+@keyframes retro-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@utility cursor-blink {
+  animation: retro-blink 1s steps(1) infinite;
+}
+
+@keyframes pixel-load {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@utility pixel-load-bar {
+  animation: pixel-load 1.1s ease-in-out infinite;
 }

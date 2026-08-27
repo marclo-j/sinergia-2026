@@ -1,32 +1,37 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { SiteHeader } from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter.astro";
 import { InscripcionForm } from "@/components/islands/InscripcionForm";
 
-const PRICE = 10;
+const days = [
+  { n: "30", month: "Octubre" },
+  { n: "31", month: "Octubre" },
+  { n: "01", month: "Noviembre" },
+];
 ---
 
 <Layout
-  title="Inscripción y pago | Sinergia Vol. II"
-  description="Inscríbete a Sinergia Vol. II en 3 pasos: completa tus datos, paga por Yape, Plin o transferencia y recibe tu entrada con código QR."
+  title="Inscripción | Sinergia Vol. II"
+  description="Crea tu cuenta con tus datos personales y ministeriales, luego paga tu entrada por Yape, Plin o transferencia y recibe tu código QR."
   ogTitle="Inscripción | Sinergia Vol. II"
-  ogDescription="Preventa S/ 10. Pago por Yape, Plin o transferencia."
+  ogDescription="Preventa S/ 10 hasta el 30 de setiembre. Costo normal S/ 15."
 >
-	<div class="min-h-screen bg-background">
+	<div class="relative min-h-screen">
+		<div class="crt-scanlines grain-overlay surface-flyer fixed inset-0 -z-10"></div>
+
+		<!-- riel decorativo, solo en pantallas grandes -->
+		<div class="pointer-events-none fixed top-1/2 right-8 z-0 hidden -translate-y-1/2 flex-col items-center gap-12 xl:flex">
+			{days.map((d) => (
+				<div class="flex flex-col items-center gap-3 text-primary-foreground/80">
+					<span class="size-3 rounded-full bg-primary-foreground/50"></span>
+					<span class="font-pixel text-5xl">{d.n}</span>
+					<span class="vertical-text text-base tracking-[0.25em] uppercase">{d.month}</span>
+				</div>
+			))}
+		</div>
+
 		<SiteHeader client:load currentPath="/inscripcion" />
 
-		<section class="grain-overlay relative surface-heat">
-			<div class="relative z-10 mx-auto max-w-3xl px-4 py-14">
-				<h1 class="font-display text-4xl text-primary-foreground md:text-5xl">Inscripción</h1>
-				<p class="mt-3 text-primary-foreground/90">
-					Preventa S/ {PRICE}.00 — incluye acceso a los 3 días y el kit del asistente.
-				</p>
-			</div>
-		</section>
-
 		<InscripcionForm client:load />
-
-		<SiteFooter />
 	</div>
 </Layout>

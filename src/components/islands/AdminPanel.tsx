@@ -1,30 +1,174 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, type ChangeEvent } from "react";
 import { toast } from "sonner";
-import { QrCode, ShieldCheck } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
-import { useAuth, useIsAdmin } from "@/hooks/useAuth";
+import { QrCode, ShieldCheck, Settings as SettingsIcon } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  fetchAdminRegistrations,
+  setRegistrationStatus,
+  toggleRegistrationMaterials,
+  checkinTicket,
+  openReceipt,
+  fetchSettings,
+  updateSettings,
+  uploadYapeQr,
+  yapeQrUrl,
+  type AdminRegistrationRow,
+  type Settings,
+} from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-type Row = {
-  id: string;
-  ticket_code: string;
-  full_name: string;
-  email: string;
-  phone: string | null;
-  status: "pending" | "review" | "paid" | "rejected";
-  payment_method: string | null;
-  payment_reference: string | null;
-  receipt_url: string | null;
-  materials_picked_up: boolean;
-  checked_in_at: string | null;
-};
+function toDateInputValue(iso: string) {
+  return iso.slice(0, 10);
+}
+
+function SettingsPanel() {
+  const [settings, setSettings] = useState<Settings | null>(null);
+  const [pricePreventa, setPricePreventa] = useState("");
+  const [precioVenta, setPrecioVenta] = useState("");
+  const [preventaHasta, setPreventaHasta] = useState("");
+  const [qrFile, setQrFile] = useState<File | null>(null);
+  const [qrVersion, setQrVersion] = useState(0);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const { settings } = await fetchSettings();
+      setSettings(settings);
+      setPricePreventa(String(settings.pricePreventa));
+      setPrecioVenta(String(settings.precioVenta));
+      setPreventaHasta(toDateInputValue(settings.preventaHasta));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No pudimos cargar la configuración");
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const savePrices = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { settings } = await updateSettings({
+        pricePreventa: Number(pricePreventa),
+        precioVenta: Number(precioVenta),
+        preventaHasta,
+      });
+      setSettings(settings);
+      toast.success("Precios actualizados");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No pudimos actualizar los precios");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveQr = async () => {
+    if (!qrFile) return;
+    setBusy(true);
+    try {
+      const { settings } = await uploadYapeQr(qrFile);
+      setSettings(settings);
+      setQrFile(null);
+      setQrVersion((v) => v + 1);
+      toast.success("QR de Yape actualizado");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No pudimos subir el QR");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="print-block mt-6 bg-card p-5">
+      <h2 className="flex items-center gap-2 font-display text-lg">
+        <SettingsIcon className="size-5" /> Precios y QR de Yape
+      </h2>
+
+      <form onSubmit={savePrices} className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="pricePreventa">Preventa (S/)</Label>
+          <Input
+            id="pricePreventa"
+            type="number"
+            min="0"
+            step="0.01"
+            value={pricePreventa}
+            onChange={(e) => setPricePreventa(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="precioVenta">Venta (S/)</Label>
+          <Input
+            id="precioVenta"
+            type="number"
+            min="0"
+            step="0.01"
+            value={precioVenta}
+            onChange={(e) => setPrecioVenta(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="preventaHasta">Preventa hasta</Label>
+          <Input
+            id="preventaHasta"
+            type="date"
+            value={preventaHasta}
+            onChange={(e) => setPreventaHasta(e.target.value)}
+          />
+        </div>
+        <Button type="submit" disabled={busy} className="sm:col-span-3 sm:w-fit">
+          Guardar precios
+        </Button>
+      </form>
+
+      {settings && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Precio vigente ahora: <strong>{settings.currentPrice.label}</strong> — S/{" "}
+          {settings.currentPrice.amount}.00
+        </p>
+      )}
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
+        <div className="flex size-32 items-center justify-center border-2 border-dashed border-border bg-background">
+          {settings?.hasYapeQr ? (
+            <img
+              key={qrVersion}
+              src={`${yapeQrUrl()}?v=${qrVersion}`}
+              alt="QR de Yape actual"
+              className="size-full object-contain"
+            />
+          ) : (
+            <QrCode className="size-8 text-muted-foreground" />
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="qrFile">Reemplazar QR de Yape (imagen)</Label>
+          <div className="flex gap-2">
+            <Input
+              id="qrFile"
+              type="file"
+              accept="image/*"
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setQrFile(e.target.files?.[0] ?? null)}
+            />
+            <Button type="button" onClick={saveQr} disabled={busy || !qrFile}>
+              Subir
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function AdminPanel() {
   const { user, loading } = useAuth();
-  const isAdmin = useIsAdmin(user?.id);
+  const isAdmin = user?.role === "admin";
   const [code, setCode] = useState("");
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<AdminRegistrationRow[]>([]);
 
   useEffect(() => {
     if (!loading && !user) window.location.href = "/auth";
@@ -32,79 +176,48 @@ export function AdminPanel() {
 
   const reload = useCallback(async () => {
     if (!isAdmin) return;
-    const { data, error } = await supabase
-      .from("registrations")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!error && data) setRows(data as unknown as Row[]);
+    try {
+      const { registrations } = await fetchAdminRegistrations();
+      setRows(registrations);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No pudimos cargar las inscripciones");
+    }
   }, [isAdmin]);
 
   useEffect(() => {
     reload();
   }, [reload]);
 
-  const setStatus = async (id: string, status: Row["status"]) => {
-    const { error } = await supabase.from("registrations").update({ status }).eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
+  const setStatus = async (id: string, status: AdminRegistrationRow["status"]) => {
+    try {
+      await setRegistrationStatus(id, status);
+      toast.success("Estado actualizado");
+      reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No pudimos actualizar el estado");
     }
-    toast.success("Estado actualizado");
-    reload();
   };
 
-  const toggleMaterials = async (row: Row) => {
-    const { error } = await supabase
-      .from("registrations")
-      .update({
-        materials_picked_up: !row.materials_picked_up,
-        materials_picked_up_at: row.materials_picked_up ? null : new Date().toISOString(),
-      })
-      .eq("id", row.id);
-    if (error) {
-      toast.error(error.message);
-      return;
+  const toggleMaterials = async (row: AdminRegistrationRow) => {
+    try {
+      await toggleRegistrationMaterials(row.id);
+      reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No pudimos actualizar los materiales");
     }
-    reload();
   };
 
   const validate = async () => {
     const ticket = code.trim().toUpperCase();
     if (!ticket) return;
-    const { data, error } = await supabase
-      .from("registrations")
-      .select("*")
-      .eq("ticket_code", ticket)
-      .maybeSingle();
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const { registration } = await checkinTicket(ticket);
+      toast.success(`Ingreso válido — ${registration.fullName}`);
+      setCode("");
+      reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No pudimos validar el ingreso");
     }
-    if (!data) {
-      toast.error("Código no encontrado");
-      return;
-    }
-    const row = data as unknown as Row;
-    if (row.status !== "paid") {
-      toast.error(`${row.full_name}: pago no confirmado`);
-      return;
-    }
-    await supabase
-      .from("registrations")
-      .update({ checked_in_at: new Date().toISOString() })
-      .eq("id", row.id);
-    toast.success(`Ingreso válido — ${row.full_name}`);
-    setCode("");
-    reload();
-  };
-
-  const openReceipt = async (path: string) => {
-    const { data, error } = await supabase.storage.from("receipts").createSignedUrl(path, 60);
-    if (error || !data) {
-      toast.error("No pudimos abrir el comprobante");
-      return;
-    }
-    window.open(data.signedUrl, "_blank", "noopener");
   };
 
   if (loading) {
@@ -144,6 +257,8 @@ export function AdminPanel() {
         </p>
       </div>
 
+      <SettingsPanel />
+
       <div className="mt-8 overflow-x-auto">
         <table className="w-full min-w-[820px] text-sm">
           <thead className="text-left font-display text-xs uppercase tracking-wider text-muted-foreground">
@@ -159,16 +274,16 @@ export function AdminPanel() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.id} className="border-t">
-                <td className="p-2 font-mono text-xs">{r.ticket_code}</td>
+                <td className="p-2 font-pixel text-xs">{r.ticketCode}</td>
                 <td className="p-2">
-                  {r.full_name}
+                  {r.fullName}
                   <span className="block text-xs text-muted-foreground">{r.email}</span>
                 </td>
                 <td className="p-2">
-                  {r.payment_method ?? "—"}
-                  <span className="block text-xs text-muted-foreground">{r.payment_reference ?? ""}</span>
-                  {r.receipt_url && (
-                    <button className="text-xs underline" onClick={() => openReceipt(r.receipt_url!)}>
+                  {r.paymentMethod ?? "—"}
+                  <span className="block text-xs text-muted-foreground">{r.paymentReference ?? ""}</span>
+                  {r.hasReceipt && (
+                    <button className="text-xs underline" onClick={() => openReceipt(r.id)}>
                       Ver comprobante
                     </button>
                   )}
@@ -176,7 +291,7 @@ export function AdminPanel() {
                 <td className="p-2">{r.status}</td>
                 <td className="p-2">
                   <button className="text-xs underline" onClick={() => toggleMaterials(r)}>
-                    {r.materials_picked_up ? "Recogidos" : "Pendiente"}
+                    {r.materialsPickedUp ? "Recogidos" : "Pendiente"}
                   </button>
                 </td>
                 <td className="p-2">

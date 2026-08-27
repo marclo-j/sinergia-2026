@@ -1,53 +1,40 @@
-import { useEffect, useState } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase/client";
+import { useCallback, useEffect, useState } from "react";
+import { clearToken, fetchMe, getToken, type PublicRegistration, type PublicUser } from "@/lib/api/client";
 
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<PublicUser | null>(null);
+  const [registration, setRegistration] = useState<PublicRegistration | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
+  const refresh = useCallback(async () => {
+    if (!getToken()) {
+      setUser(null);
+      setRegistration(null);
       setLoading(false);
-    });
-
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
-  return { session, user, loading };
-}
-
-export function useIsAdmin(userId: string | undefined) {
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    if (!userId) {
-      setIsAdmin(false);
       return;
     }
-    let active = true;
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle()
-      .then(({ data }) => {
-        if (active) setIsAdmin(Boolean(data));
-      });
-    return () => {
-      active = false;
-    };
-  }, [userId]);
+    try {
+      const data = await fetchMe();
+      setUser(data.user);
+      setRegistration(data.registration);
+    } catch {
+      clearToken();
+      setUser(null);
+      setRegistration(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  return isAdmin;
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const logout = useCallback(() => {
+    clearToken();
+    setUser(null);
+    setRegistration(null);
+  }, []);
+
+  return { user, registration, loading, refresh, logout };
 }

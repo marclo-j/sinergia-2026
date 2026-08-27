@@ -33,7 +33,7 @@ export function Countdown() {
         { v: t.s, l: "Seg" },
       ].map((b) => (
         <div key={b.l} className="min-w-20 bg-ink/60 px-4 py-3 text-center">
-          <p className="font-display text-3xl text-accent">{String(b.v).padStart(2, "0")}</p>
+          <p className="font-pixel text-3xl text-accent">{String(b.v).padStart(2, "0")}</p>
           <p className="text-xs tracking-[0.15em] uppercase">{b.l}</p>
         </div>
       ))}
