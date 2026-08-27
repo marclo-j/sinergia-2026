@@ -170,7 +170,6 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-    cursor: url("/cursor/roret_cursor/cursor_default.png") 2 2, auto;
   }
 
   h1,
@@ -179,42 +178,6 @@
     font-family: var(--font-display);
     letter-spacing: -0.01em;
     text-transform: uppercase;
-  }
-
-  /* Cursor retro: lápiz al pasar sobre texto (título, párrafos, etc).
-     Ojo: no incluye `span` a propósito — muchos botones/labels usan spans
-     para su texto y necesitan seguir mostrando la manito de "cursor-pointer". */
-  p,
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  blockquote,
-  dt,
-  dd {
-    cursor: url("/cursor/roret_cursor/cursor_pen.png") 2 18, text;
-  }
-
-  /* Cursor retro: puntero tipo mano en todo lo clickeable. */
-  a,
-  button,
-  label,
-  select,
-  summary,
-  [role="button"],
-  [role="tab"],
-  input[type="checkbox"],
-  input[type="radio"],
-  .cursor-pointer {
-    cursor: url("/cursor/roret_cursor/cursor_select.png") 4 0, pointer !important;
-  }
-
-  button:disabled,
-  [aria-disabled="true"],
-  .cursor-not-allowed {
-    cursor: url("/cursor/roret_cursor/cursor_dead.png") 10 10, not-allowed !important;
   }
 }
 
