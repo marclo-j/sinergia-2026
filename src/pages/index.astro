@@ -84,10 +84,10 @@ const days = [
 		<section class="relative bg-electric text-electric-foreground overflow-hidden">
 			<img src="/countdown/bg_reloj.png" alt="" class="absolute inset-0 z-[1] h-full w-full object-cover" />
 			<div class="absolute inset-0 z-[2] bg-electric/30"></div>
-			<div class="relative z-10 mx-auto md:flex max-w-6xl flex-wrap items-center gap-6 px-4 py-8">
+			<div class="relative z-10 mx-auto flex max-w-6xl flex-col flex-wrap items-center gap-6 px-4 py-8 lg:flex-row">
 				<p class="font-medium text-3xl">FALTAN:</p>
 				<Countdown client:load />
-				<p class="ml-auto hidden font-medium text-xl tracking-[0.2em] md:block">
+				<p class="font-medium text-xl tracking-[0.2em] lg:ml-auto">
 					30 · 31 Oct · 01 Nov
 				</p>
 			</div>
