@@ -276,7 +276,7 @@ export function AdminEntradas() {
             value={code}
             maxLength={20}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="SIN26-XXXXXX"
+            placeholder="SIN26-XXXX"
             onKeyDown={(e) => e.key === "Enter" && validate()}
           />
           <Button onClick={validate}>Validar</Button>
