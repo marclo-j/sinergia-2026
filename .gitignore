@@ -22,3 +22,7 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# assets 3D originales sin comprimir (86-91MB c/u) — solo referencia local,
+# la web usa las versiones optimizadas en public/3d/
+assets-source/

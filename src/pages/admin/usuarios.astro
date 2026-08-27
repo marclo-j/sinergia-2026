@@ -1,0 +1,16 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { AdminNav } from "@/components/AdminNav";
+import { AdminUsuarios } from "@/components/islands/AdminUsuarios";
+---
+
+<Layout
+  title="Usuarios | Panel admin | Sinergia Vol. II"
+  description="Directorio de personas registradas: datos personales y ministeriales."
+  noindex
+>
+	<div class="admin-scope min-h-screen bg-background">
+		<AdminNav client:load currentPath="/admin/usuarios" />
+		<AdminUsuarios client:load />
+	</div>
+</Layout>

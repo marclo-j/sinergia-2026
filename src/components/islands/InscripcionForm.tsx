@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState, type ChangeEvent } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
+import { motion } from "motion/react";
 import {
   Eye,
   EyeOff,
@@ -28,17 +29,26 @@ import {
   setToken,
   submitPayment,
   fetchSettings,
+  fetchCatalog,
   yapeQrUrl,
   type Settings,
   type PublicUser,
   type PublicRegistration,
+  type CatalogItem,
 } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
 import { IconBadge } from "@/components/ui/icon-badge";
 import { RetroWindow } from "@/components/ui/retro-window";
+
+// Entrada estándar (fade + slide-up) para las secciones de la página.
+const fadeUp = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+};
 
 // ---------------------------------------------------------------------------
 // Paso 1 (sin sesión): crear cuenta con datos personales y ministeriales.
@@ -108,14 +118,19 @@ const signupFields: SignupField[] = [
   { key: "apellidos", label: "Apellidos", icon: User, placeholder: "Ingresa tus apellidos" },
   { key: "fechaNacimiento", label: "Fecha de nacimiento", icon: CalendarDays, type: "date", placeholder: "" },
   { key: "telefono", label: "Teléfono", icon: Phone, type: "tel", placeholder: "Ingresa tu número de teléfono" },
-  { key: "iglesia", label: "Iglesia", icon: Church, placeholder: "Ingresa el nombre de tu iglesia" },
-  { key: "ministerio", label: "Ministerio", icon: Users, placeholder: "¿En qué ministerio sirves? (opcional)" },
 ];
 
 function SignupSection({ onDone }: { onDone: () => Promise<void> }) {
   const [signup, setSignup] = useState<SignupState>(initialSignup);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [iglesias, setIglesias] = useState<CatalogItem[]>([]);
+  const [ministerios, setMinisterios] = useState<CatalogItem[]>([]);
+
+  useEffect(() => {
+    fetchCatalog("iglesias").then(({ items }) => setIglesias(items)).catch(() => {});
+    fetchCatalog("ministerios").then(({ items }) => setMinisterios(items)).catch(() => {});
+  }, []);
 
   const setValue = (key: keyof SignupState) => (e: ChangeEvent<HTMLInputElement>) =>
     setSignup((prev) => ({ ...prev, [key]: e.target.value }));
@@ -142,13 +157,14 @@ function SignupSection({ onDone }: { onDone: () => Promise<void> }) {
 
   return (
     <>
+      <motion.div {...fadeUp} transition={{ duration: 0.5, ease: "easeOut" }}>
       <RetroWindow title="REGISTRO.EXE">
         <form onSubmit={submit} className="paper-kraft space-y-6 p-6 md:p-8">
             <div className="grid gap-5 sm:grid-cols-2">
               {signupFields.map((f) => (
                 <Fragment key={f.key}>
                   <div className="space-y-2">
-                    <Label htmlFor={f.key} className="flex items-center gap-3 font-display text-sm normal-case">
+                    <Label htmlFor={f.key} className="flex items-center gap-3">
                       <IconBadge icon={f.icon} /> {f.label}
                     </Label>
                     <Input
@@ -164,7 +180,7 @@ function SignupSection({ onDone }: { onDone: () => Promise<void> }) {
 
                   {f.key === "apellidos" && (
                     <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="numeroDocumento" className="flex items-center gap-3 font-display text-sm normal-case">
+                      <Label htmlFor="numeroDocumento" className="flex items-center gap-3">
                         <IconBadge icon={IdCard} /> Documento
                       </Label>
                       <div className="flex gap-2">
@@ -189,18 +205,65 @@ function SignupSection({ onDone }: { onDone: () => Promise<void> }) {
                           value={signup.numeroDocumento}
                           placeholder={signup.tipoDocumento === "dni" ? "Ingresa tu DNI" : "Ingresa tu N° de pasaporte"}
                           maxLength={signup.tipoDocumento === "dni" ? 8 : 20}
-                          onChange={setValue("numeroDocumento")}
+                          inputMode={signup.tipoDocumento === "dni" ? "numeric" : "text"}
+                          pattern={signup.tipoDocumento === "dni" ? "[0-9]*" : undefined}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const value = signup.tipoDocumento === "dni" ? raw.replace(/\D/g, "") : raw;
+                            setSignup((prev) => ({ ...prev, numeroDocumento: value }));
+                          }}
                           className="bg-card"
                         />
                       </div>
                     </div>
+                  )}
+
+                  {f.key === "telefono" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="iglesia" className="flex items-center gap-3">
+                          <IconBadge icon={Church} /> Iglesia
+                        </Label>
+                        <Select
+                          id="iglesia"
+                          value={signup.iglesia}
+                          onChange={(e) => setSignup((prev) => ({ ...prev, iglesia: e.target.value }))}
+                          className="bg-card"
+                        >
+                          <option value="">Selecciona tu iglesia (opcional)</option>
+                          {iglesias.map((i) => (
+                            <option key={i.id} value={i.name}>
+                              {i.name}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="ministerio" className="flex items-center gap-3">
+                          <IconBadge icon={Users} /> Ministerio
+                        </Label>
+                        <Select
+                          id="ministerio"
+                          value={signup.ministerio}
+                          onChange={(e) => setSignup((prev) => ({ ...prev, ministerio: e.target.value }))}
+                          className="bg-card"
+                        >
+                          <option value="">Selecciona tu ministerio (opcional)</option>
+                          {ministerios.map((m) => (
+                            <option key={m.id} value={m.name}>
+                              {m.name}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                    </>
                   )}
                 </Fragment>
               ))}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="signupEmail" className="flex items-center gap-3 font-display text-sm normal-case">
+              <Label htmlFor="signupEmail" className="flex items-center gap-3">
                 <IconBadge icon={Mail} /> Correo electrónico
               </Label>
               <Input
@@ -258,13 +321,18 @@ function SignupSection({ onDone }: { onDone: () => Promise<void> }) {
           </Button>
         </form>
       </RetroWindow>
+      </motion.div>
 
-      <a
+      <motion.a
         href="/auth"
-        className="print-block mt-8 inline-flex items-center gap-2 bg-background px-6 py-3 font-pixel text-xs tracking-widest text-foreground transition-transform hover:-translate-y-0.5"
+        {...fadeUp}
+        transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+        whileHover={{ y: -3 }}
+        whileTap={{ scale: 0.97 }}
+        className="print-block mt-8 inline-flex items-center gap-2 bg-background px-6 py-3 font-pixel text-xs tracking-widest text-foreground"
       >
         ¿YA TIENES CUENTA? <span className="text-primary">&gt;&gt; INICIA SESIÓN</span>
-      </a>
+      </motion.a>
     </>
   );
 }
@@ -464,15 +532,22 @@ function PaymentSection({
 
   return (
     <>
-      <div className="print-block mb-8 inline-block bg-background/95 px-5 py-4">
+      <motion.div
+        {...fadeUp}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="print-block mb-8 inline-block bg-background/95 px-5 py-4"
+      >
         <p className="font-pixel text-[10px] tracking-widest text-primary">&gt; PAGO.SYS</p>
         <h1 className="font-display text-pop mt-2 text-5xl leading-none text-accent sm:text-6xl">
           Paga tu entrada
         </h1>
-      </div>
+      </motion.div>
 
-      <Stepper paid={registration.status === "paid"} />
+      <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}>
+        <Stepper paid={registration.status === "paid"} />
+      </motion.div>
 
+      <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}>
       <RetroWindow title="TICKET.DAT">
         <div className="bg-ink p-6 text-center">
           <p className="font-pixel text-[10px] tracking-widest text-electric">TU CÓDIGO DE ENTRADA</p>
@@ -485,9 +560,10 @@ function PaymentSection({
           </p>
         </div>
       </RetroWindow>
+      </motion.div>
 
       {registration.status === "pending" && (
-        <div className="mt-6">
+        <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }} className="mt-6">
           <RetroWindow title="PAGO.EXE">
             <form onSubmit={submitPay} className="space-y-5 p-6">
               <h2 className="font-pixel text-lg tracking-widest text-primary">
@@ -500,11 +576,11 @@ function PaymentSection({
               {paymentFields("Enviar comprobante")}
             </form>
           </RetroWindow>
-        </div>
+        </motion.div>
       )}
 
       {registration.status === "review" && (
-        <div className="mt-6">
+        <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }} className="mt-6">
           <RetroWindow title="VALIDANDO.EXE">
             <div className="space-y-4 p-6">
               <p className="flex items-center gap-2 font-pixel text-xs tracking-widest text-electric">
@@ -524,11 +600,11 @@ function PaymentSection({
               </a>
             </div>
           </RetroWindow>
-        </div>
+        </motion.div>
       )}
 
       {registration.status === "paid" && (
-        <div className="mt-6">
+        <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }} className="mt-6">
           <RetroWindow title="CONFIRMADO.OK">
             <div className="space-y-4 p-6">
               <p className="flex items-center gap-2 font-pixel text-xs tracking-widest text-accent">
@@ -545,11 +621,11 @@ function PaymentSection({
               </a>
             </div>
           </RetroWindow>
-        </div>
+        </motion.div>
       )}
 
       {registration.status === "rejected" && (
-        <div className="mt-6">
+        <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }} className="mt-6">
           <RetroWindow title="ERROR.LOG">
             <form onSubmit={submitPay} className="space-y-5 p-6">
               <p className="flex items-center gap-2 font-pixel text-xs tracking-widest text-destructive">
@@ -561,13 +637,13 @@ function PaymentSection({
               {paymentFields("Reenviar comprobante")}
             </form>
           </RetroWindow>
-        </div>
+        </motion.div>
       )}
 
       {settings && (
-        <div className="mt-4">
+        <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }} className="mt-4">
           <PriceBanner settings={settings} />
-        </div>
+        </motion.div>
       )}
     </>
   );

@@ -17,7 +17,8 @@ const days = [
   ogDescription="Preventa S/ 10 hasta el 30 de setiembre. Costo normal S/ 15."
 >
 	<div class="relative min-h-screen">
-		<div class="crt-scanlines grain-overlay surface-flyer fixed inset-0 -z-10"></div>
+		<div class="surface-antiguo fixed inset-0 -z-20"></div>
+		<div id="glitch-backdrop" class="crt-scanlines grain-overlay surface-flyer fixed inset-0 -z-10"></div>
 
 		<!-- riel decorativo, solo en pantallas grandes -->
 		<div class="pointer-events-none fixed top-1/2 right-8 z-0 hidden -translate-y-1/2 flex-col items-center gap-12 xl:flex">
@@ -35,3 +36,23 @@ const days = [
 		<InscripcionForm client:load />
 	</div>
 </Layout>
+
+<script>
+	// Glitch ambiental sobre el fondo de la página: un desfase de franjas con
+	// corte de color que "sintoniza" cada pocos segundos, como interferencia
+	// de señal. Va sobre un <div> con imagen de fondo (no un canvas), así que
+	// powerglitch puede clonarlo sin problema y el efecto se ve completo.
+	import { PowerGlitch } from "powerglitch";
+
+	const backdrop = document.getElementById("glitch-backdrop");
+	if (backdrop) {
+		PowerGlitch.glitch(backdrop, {
+			playMode: "always",
+			timing: { duration: 6000, iterations: Infinity },
+			glitchTimeSpan: { start: 0.55, end: 0.62 },
+			shake: { velocity: 15, amplitudeX: 0.015, amplitudeY: 0.01 },
+			slice: { count: 5, velocity: 15, minHeight: 0.02, maxHeight: 0.1, hueRotate: true, cssFilters: "" },
+			pulse: false,
+		});
+	}
+</script>

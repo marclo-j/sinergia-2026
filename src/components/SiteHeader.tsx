@@ -40,6 +40,11 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
           ))}
           {user ? (
             <>
+              {user.role === "admin" && (
+                <a href="/admin/entradas" className="transition-colors hover:text-accent">
+                  Panel
+                </a>
+              )}
               <a href="/mi-entrada" className="transition-colors hover:text-accent">
                 Mi entrada
               </a>
@@ -73,6 +78,11 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
           ))}
           {user ? (
             <>
+              {user.role === "admin" && (
+                <a href="/admin/entradas" className="py-2" onClick={() => setOpen(false)}>
+                  Panel
+                </a>
+              )}
               <a href="/mi-entrada" className="py-2" onClick={() => setOpen(false)}>
                 Mi entrada
               </a>

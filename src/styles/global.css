@@ -328,3 +328,19 @@
 @utility pixel-load-bar {
   animation: pixel-load 1.1s ease-in-out infinite;
 }
+
+/* Panel admin: nada de fuentes retro (Black Magnum / Silkscreen). Al
+   redefinir estas variables dentro del contenedor, todo lo que use las
+   utilidades font-display/font-sans/font-pixel adentro hereda Roboto. */
+.admin-scope {
+  --font-display: "Roboto", system-ui, sans-serif;
+  --font-sans: "Roboto", system-ui, sans-serif;
+  --font-pixel: "Roboto", system-ui, sans-serif;
+}
+
+@utility surface-antiguo {
+  background-image: url("/img/fondo_antiguo.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}

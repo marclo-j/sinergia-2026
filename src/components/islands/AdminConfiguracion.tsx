@@ -1,19 +1,18 @@
 import { useEffect, useState, useCallback, type ChangeEvent } from "react";
 import { toast } from "sonner";
-import { QrCode, ShieldCheck, Settings as SettingsIcon } from "lucide-react";
+import { QrCode, ShieldCheck, Settings as SettingsIcon, Church, Users, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  fetchAdminRegistrations,
-  setRegistrationStatus,
-  toggleRegistrationMaterials,
-  checkinTicket,
-  openReceipt,
   fetchSettings,
   updateSettings,
   uploadYapeQr,
   yapeQrUrl,
-  type AdminRegistrationRow,
+  fetchCatalog,
+  createCatalogItem,
+  deleteCatalogItem,
   type Settings,
+  type CatalogType,
+  type CatalogItem,
 } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +22,7 @@ function toDateInputValue(iso: string) {
   return iso.slice(0, 10);
 }
 
-function SettingsPanel() {
+function PreciosPanel() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [pricePreventa, setPricePreventa] = useState("");
   const [precioVenta, setPrecioVenta] = useState("");
@@ -83,8 +82,8 @@ function SettingsPanel() {
   };
 
   return (
-    <div className="print-block mt-6 bg-card p-5">
-      <h2 className="flex items-center gap-2 font-display text-lg">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+      <h2 className="flex items-center gap-2 text-lg font-medium">
         <SettingsIcon className="size-5" /> Precios y QR de Yape
       </h2>
 
@@ -164,61 +163,110 @@ function SettingsPanel() {
   );
 }
 
-export function AdminPanel() {
+function CatalogList({ type, label, icon: Icon }: { type: CatalogType; label: string; icon: typeof Church }) {
+  const [items, setItems] = useState<CatalogItem[]>([]);
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const { items } = await fetchCatalog(type);
+      setItems(items);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : `No pudimos cargar ${label.toLowerCase()}`);
+    }
+  }, [type, label]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name.trim().length < 2) return;
+    setBusy(true);
+    try {
+      await createCatalogItem(type, name.trim());
+      setName("");
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No pudimos agregarlo");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async (item: CatalogItem) => {
+    try {
+      await deleteCatalogItem(type, item.id);
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No pudimos quitarlo");
+    }
+  };
+
+  return (
+    <div>
+      <h3 className="flex items-center gap-2 text-sm font-medium">
+        <Icon className="size-4" /> {label}
+      </h3>
+      <form onSubmit={add} className="mt-3 flex gap-2">
+        <Input
+          value={name}
+          maxLength={120}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={`Agregar ${label.toLowerCase()}…`}
+        />
+        <Button type="submit" size="sm" disabled={busy}>
+          Agregar
+        </Button>
+      </form>
+      <ul className="mt-3 max-h-56 space-y-1 overflow-y-auto">
+        {items.length === 0 && (
+          <li className="text-xs text-muted-foreground">Todavía no hay ninguna en la lista.</li>
+        )}
+        {items.map((item) => (
+          <li key={item.id} className="flex items-center justify-between gap-2 border-b border-border py-1 text-sm">
+            <span>{item.name}</span>
+            <button
+              type="button"
+              onClick={() => remove(item)}
+              aria-label={`Quitar ${item.name}`}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="size-4" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CatalogPanel() {
+  return (
+    <div className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm">
+      <h2 className="flex items-center gap-2 text-lg font-medium">
+        <Church className="size-5" /> Iglesias y ministerios
+      </h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Estas listas alimentan los selectores de "Iglesia" y "Ministerio" del formulario de inscripción.
+      </p>
+      <div className="mt-4 grid gap-6 sm:grid-cols-2">
+        <CatalogList type="iglesias" label="Iglesias" icon={Church} />
+        <CatalogList type="ministerios" label="Ministerios" icon={Users} />
+      </div>
+    </div>
+  );
+}
+
+export function AdminConfiguracion() {
   const { user, loading } = useAuth();
   const isAdmin = user?.role === "admin";
-  const [code, setCode] = useState("");
-  const [rows, setRows] = useState<AdminRegistrationRow[]>([]);
 
   useEffect(() => {
     if (!loading && !user) window.location.href = "/auth";
   }, [loading, user]);
-
-  const reload = useCallback(async () => {
-    if (!isAdmin) return;
-    try {
-      const { registrations } = await fetchAdminRegistrations();
-      setRows(registrations);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No pudimos cargar las inscripciones");
-    }
-  }, [isAdmin]);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  const setStatus = async (id: string, status: AdminRegistrationRow["status"]) => {
-    try {
-      await setRegistrationStatus(id, status);
-      toast.success("Estado actualizado");
-      reload();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No pudimos actualizar el estado");
-    }
-  };
-
-  const toggleMaterials = async (row: AdminRegistrationRow) => {
-    try {
-      await toggleRegistrationMaterials(row.id);
-      reload();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No pudimos actualizar los materiales");
-    }
-  };
-
-  const validate = async () => {
-    const ticket = code.trim().toUpperCase();
-    if (!ticket) return;
-    try {
-      const { registration } = await checkinTicket(ticket);
-      toast.success(`Ingreso válido — ${registration.fullName}`);
-      setCode("");
-      reload();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No pudimos validar el ingreso");
-    }
-  };
 
   if (loading) {
     return <p className="p-10 text-muted-foreground">Cargando…</p>;
@@ -228,7 +276,7 @@ export function AdminPanel() {
     return (
       <main className="mx-auto max-w-2xl px-4 py-20 text-center">
         <ShieldCheck className="mx-auto size-10 text-muted-foreground" />
-        <h1 className="mt-4 font-display text-2xl">Acceso restringido</h1>
+        <h1 className="mt-4 text-2xl font-semibold">Acceso restringido</h1>
         <p className="mt-2 text-muted-foreground">Esta sección es solo para el equipo organizador.</p>
       </main>
     );
@@ -236,85 +284,13 @@ export function AdminPanel() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="font-display text-3xl">Panel del equipo</h1>
+      <h1 className="text-3xl font-semibold">Configuración</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Precios, QR de pago e iglesias/ministerios del formulario.</p>
 
-      <div className="print-block mt-6 bg-card p-5">
-        <h2 className="flex items-center gap-2 font-display text-lg">
-          <QrCode className="size-5" /> Validar entrada
-        </h2>
-        <div className="mt-3 flex gap-2">
-          <Input
-            value={code}
-            maxLength={20}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="SIN26-XXXXXX"
-            onKeyDown={(e) => e.key === "Enter" && validate()}
-          />
-          <Button onClick={validate}>Validar</Button>
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Escanea el QR con cualquier lector; pega el código aquí y presiona Validar.
-        </p>
+      <div className="mt-6">
+        <PreciosPanel />
       </div>
-
-      <SettingsPanel />
-
-      <div className="mt-8 overflow-x-auto">
-        <table className="w-full min-w-[820px] text-sm">
-          <thead className="text-left font-display text-xs uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="p-2">Código</th>
-              <th className="p-2">Asistente</th>
-              <th className="p-2">Pago</th>
-              <th className="p-2">Estado</th>
-              <th className="p-2">Materiales</th>
-              <th className="p-2">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-t">
-                <td className="p-2 font-pixel text-xs">{r.ticketCode}</td>
-                <td className="p-2">
-                  {r.fullName}
-                  <span className="block text-xs text-muted-foreground">{r.email}</span>
-                </td>
-                <td className="p-2">
-                  {r.paymentMethod ?? "—"}
-                  <span className="block text-xs text-muted-foreground">{r.paymentReference ?? ""}</span>
-                  {r.hasReceipt && (
-                    <button className="text-xs underline" onClick={() => openReceipt(r.id)}>
-                      Ver comprobante
-                    </button>
-                  )}
-                </td>
-                <td className="p-2">{r.status}</td>
-                <td className="p-2">
-                  <button className="text-xs underline" onClick={() => toggleMaterials(r)}>
-                    {r.materialsPickedUp ? "Recogidos" : "Pendiente"}
-                  </button>
-                </td>
-                <td className="p-2">
-                  <div className="flex gap-2">
-                    <button
-                      className="bg-accent px-2 py-1 text-xs text-accent-foreground"
-                      onClick={() => setStatus(r.id, "paid")}
-                    >
-                      Aprobar
-                    </button>
-                    <button
-                      className="bg-destructive px-2 py-1 text-xs text-destructive-foreground"
-                      onClick={() => setStatus(r.id, "rejected")}
-                    >
-                      Rechazar
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <CatalogPanel />
     </main>
   );
 }

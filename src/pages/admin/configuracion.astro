@@ -1,0 +1,16 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { AdminNav } from "@/components/AdminNav";
+import { AdminConfiguracion } from "@/components/islands/AdminConfiguracion";
+---
+
+<Layout
+  title="Configuración | Panel admin | Sinergia Vol. II"
+  description="Precios, QR de pago e iglesias/ministerios del formulario de inscripción."
+  noindex
+>
+	<div class="admin-scope min-h-screen bg-background">
+		<AdminNav client:load currentPath="/admin/configuracion" />
+		<AdminConfiguracion client:load />
+	</div>
+</Layout>

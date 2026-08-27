@@ -58,6 +58,12 @@ export type AdminRegistrationRow = {
   hasReceipt: boolean;
   materialsPickedUp: boolean;
   checkedInAt: string | null;
+  role: "attendee" | "admin";
+  tipoDocumento: "dni" | "pasaporte";
+  numeroDocumento: string;
+  fechaNacimiento: string | null;
+  iglesia: string | null;
+  ministerio: string | null;
 };
 
 export type Settings = {
@@ -66,6 +72,13 @@ export type Settings = {
   preventaHasta: string;
   currentPrice: { amount: number; label: "preventa" | "venta" };
   hasYapeQr: boolean;
+};
+
+export type CatalogType = "iglesias" | "ministerios";
+
+export type CatalogItem = {
+  id: string;
+  name: string;
 };
 
 class ApiError extends Error {}
@@ -172,6 +185,21 @@ export function uploadYapeQr(file: File) {
   const form = new FormData();
   form.set("qr", file);
   return request<{ settings: Settings }>("/admin/settings/qr", { method: "POST", body: form });
+}
+
+export function fetchCatalog(type: CatalogType) {
+  return request<{ items: CatalogItem[] }>(`/catalog/${type}`);
+}
+
+export function createCatalogItem(type: CatalogType, name: string) {
+  return request<{ item: CatalogItem }>(`/admin/catalog/${type}`, {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export function deleteCatalogItem(type: CatalogType, id: string) {
+  return request<{ ok: true }>(`/admin/catalog/${type}/${id}`, { method: "DELETE" });
 }
 
 export async function openReceipt(id: string) {

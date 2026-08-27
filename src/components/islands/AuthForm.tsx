@@ -22,7 +22,7 @@ export function AuthForm() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) window.location.href = "/inscripcion";
+    if (!loading && user) window.location.href = user.role === "admin" ? "/admin/entradas" : "/inscripcion";
   }, [user, loading]);
 
   const submit = async (e: React.FormEvent) => {
@@ -34,10 +34,10 @@ export function AuthForm() {
     }
     setBusy(true);
     try {
-      const { token } = await login(parsed.data);
+      const { token, user } = await login(parsed.data);
       setToken(token);
       toast.success("Bienvenido de vuelta");
-      window.location.href = "/inscripcion";
+      window.location.href = user.role === "admin" ? "/admin/entradas" : "/inscripcion";
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No pudimos iniciar sesión");
     } finally {
