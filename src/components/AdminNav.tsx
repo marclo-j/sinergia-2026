@@ -37,9 +37,6 @@ export function AdminNav({ currentPath = "/admin/entradas" }: { currentPath?: st
               {l.label}
             </a>
           ))}
-          <a href="/" className="text-muted-foreground transition-colors hover:text-primary">
-            Ver sitio
-          </a>
           <button type="button" onClick={signOut} className="text-muted-foreground hover:text-destructive">
             Salir
           </button>

@@ -11,7 +11,8 @@ const links = [
 ] as const;
 
 export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
-  const { user, logout } = useAuth();
+  const { user, registration, logout } = useAuth();
+  const isPaid = registration?.status === "paid";
   const [open, setOpen] = useState(false);
 
   const signOut = () => {
@@ -45,9 +46,11 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
                   Panel
                 </a>
               )}
-              <a href="/mi-entrada" className="transition-colors hover:text-accent">
-                Mi entrada
-              </a>
+              {isPaid && (
+                <a href="/mi-entrada" className="transition-colors hover:text-accent">
+                  Mi entrada
+                </a>
+              )}
               <Button variant="ghost" size="sm" onClick={signOut}>
                 Salir
               </Button>
@@ -83,9 +86,11 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
                   Panel
                 </a>
               )}
-              <a href="/mi-entrada" className="py-2" onClick={() => setOpen(false)}>
-                Mi entrada
-              </a>
+              {isPaid && (
+                <a href="/mi-entrada" className="py-2" onClick={() => setOpen(false)}>
+                  Mi entrada
+                </a>
+              )}
               <button type="button" className="py-2 text-left" onClick={signOut}>
                 Salir
               </button>

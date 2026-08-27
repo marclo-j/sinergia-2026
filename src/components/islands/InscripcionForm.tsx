@@ -21,6 +21,8 @@ import {
   XCircle,
   UserCheck,
   CreditCard,
+  X,
+  MessageCircle,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,11 +32,13 @@ import {
   submitPayment,
   fetchSettings,
   fetchCatalog,
-  yapeQrUrl,
+  fetchPaymentMethods,
+  paymentMethodQrUrl,
   type Settings,
   type PublicUser,
   type PublicRegistration,
   type CatalogItem,
+  type PaymentMethodItem,
 } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -410,42 +414,47 @@ function SignupSection({ onDone }: { onDone: () => Promise<void> }) {
 // Paso 2 (con sesión): pagar la entrada.
 // ---------------------------------------------------------------------------
 
-const methods = [
-  { id: "yape", label: "Yape", detail: "Escanea el QR o yapea al 900 000 000" },
-  { id: "plin", label: "Plin", detail: "Plin al 900 000 000 — Conferencia Sinergia" },
-  {
-    id: "transferencia",
-    label: "Transferencia",
-    detail: "BCP Soles 191-0000000-0-00 · CCI 002-191-000000000000-00",
-  },
-];
-
 function Dropzone({ file, onChange }: { file: File | null; onChange: (f: File | null) => void }) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  if (file) {
+    return (
+      <div className="relative flex flex-col items-center justify-center gap-2 border-2 border-electric/50 bg-electric/5 px-4 py-6 text-center text-sm text-muted-foreground">
+        {previewUrl && <img src={previewUrl} alt="Vista previa del comprobante" className="max-h-32 object-contain" />}
+        <span>{file.name}</span>
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="absolute top-2 right-2 flex size-7 items-center justify-center bg-destructive text-destructive-foreground"
+          aria-label="Quitar imagen"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <label className="relative flex cursor-pointer items-center justify-center gap-2 border-2 border-dashed border-electric/50 bg-electric/5 px-4 py-6 text-center text-sm text-muted-foreground transition-colors hover:bg-electric/10">
+    <label className="relative flex cursor-pointer flex-col items-center justify-center gap-2 border-2 border-dashed border-electric/50 bg-electric/5 px-4 py-6 text-center text-sm text-muted-foreground transition-colors hover:bg-electric/10">
       <FileText className="size-4 shrink-0" />
-      <span>{file ? file.name : "Selecciona o arrastra tu comprobante aquí"}</span>
+      <span>Selecciona o arrastra la imagen de tu comprobante aquí</span>
       <input
         type="file"
-        accept="image/*,application/pdf"
+        accept="image/*"
         className="absolute inset-0 cursor-pointer opacity-0"
         onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.files?.[0] ?? null)}
       />
     </label>
-  );
-}
-
-function PixelLoader() {
-  return (
-    <div className="flex gap-1 border-2 border-ink bg-ink p-1.5">
-      {Array.from({ length: 16 }).map((_, i) => (
-        <span
-          key={i}
-          className="pixel-load-bar h-4 flex-1 bg-electric"
-          style={{ animationDelay: `${i * 0.07}s` }}
-        />
-      ))}
-    </div>
   );
 }
 
@@ -475,23 +484,51 @@ function PriceBanner({ settings }: { settings: Settings }) {
     day: "numeric",
     month: "long",
   });
+  const rows = [
+    {
+      label: "PREVENTA",
+      amount: settings.pricePreventa,
+      note: `Hasta el ${hasta}`,
+      active: preventaVigente,
+    },
+    {
+      label: "VENTA",
+      amount: settings.precioVenta,
+      note: `Desde el ${hasta}`,
+      active: !preventaVigente,
+    },
+  ];
   return (
-    <div className="flex flex-col items-center gap-3 border-2 border-ink bg-ember px-4 py-4 text-center text-ember-foreground sm:flex-row sm:justify-center sm:gap-6 sm:text-left">
-      <span className="flex items-center gap-2 font-pixel text-[10px] tracking-widest">
+    <div className="border-2 border-ink bg-ember text-ember-foreground">
+      <div className="flex items-center gap-2 border-b-2 border-ink px-4 py-2 font-pixel text-[10px] tracking-widest">
         <Megaphone className="size-4" /> PRECIOS
-      </span>
-      <span
-        className={`font-pixel text-[11px] tracking-wide ${preventaVigente ? "text-glow" : "opacity-70"}`}
-      >
-        {preventaVigente ? "▶" : "  "} PREVENTA S/ {settings.pricePreventa}.00 (HASTA EL{" "}
-        {hasta.toUpperCase()})
-      </span>
-      <span className="hidden h-5 w-px bg-ember-foreground/30 sm:block" />
-      <span
-        className={`font-pixel text-[11px] tracking-wide ${!preventaVigente ? "text-glow" : "opacity-70"}`}
-      >
-        {!preventaVigente ? "▶" : "  "} VENTA S/ {settings.precioVenta}.00
-      </span>
+      </div>
+      <table className="w-full border-collapse text-left">
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={row.label} className={row.active ? "bg-ember-foreground/10" : ""}>
+              <td
+                className={`px-4 py-2 font-pixel text-[10px] tracking-widest whitespace-nowrap ${
+                  i > 0 ? "border-t-2 border-ink" : ""
+                } ${row.active ? "text-glow" : "opacity-70"}`}
+              >
+                {row.active ? "▶ " : ""}
+                {row.label}
+              </td>
+              <td
+                className={`px-4 py-2 font-pixel text-sm whitespace-nowrap ${
+                  i > 0 ? "border-t-2 border-ink" : ""
+                } ${row.active ? "text-glow" : "opacity-70"}`}
+              >
+                S/ {row.amount}.00
+              </td>
+              <td className={`w-full px-4 py-2 text-xs ${i > 0 ? "border-t-2 border-ink" : ""} opacity-80`}>
+                {row.note}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -507,21 +544,31 @@ function PaymentSection({
   settings: Settings | null;
   onPaid: () => Promise<void>;
 }) {
-  const [method, setMethod] = useState("yape");
+  const [methods, setMethods] = useState<PaymentMethodItem[]>([]);
+  const [method, setMethod] = useState("");
   const [reference, setReference] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    fetchPaymentMethods()
+      .then(({ methods }) => {
+        setMethods(methods);
+        setMethod((prev) => prev || methods[0]?.name || "");
+      })
+      .catch(() => {});
+  }, []);
+
   const submitPay = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (reference.trim().length < 3) {
-      toast.error("Ingresa el número de operación o una referencia");
+    if (!file) {
+      toast.error("Sube la imagen de tu comprobante de pago");
       return;
     }
     const form = new FormData();
     form.set("method", method);
-    form.set("reference", reference.trim());
-    if (file) form.set("receipt", file);
+    if (reference.trim()) form.set("reference", reference.trim());
+    form.set("receipt", file);
 
     setBusy(true);
     try {
@@ -537,62 +584,67 @@ function PaymentSection({
 
   const paymentFields = (submitLabel: string) => (
     <>
-      <div className="grid gap-3">
-        {methods.map((m) => (
-          <div key={m.id}>
-            <label
-              className={`flex cursor-pointer gap-3 border-2 p-4 ${
-                method === m.id ? "border-primary bg-secondary" : "border-border"
-              }`}
-            >
-              <input
-                type="radio"
-                name="method"
-                value={m.id}
-                checked={method === m.id}
-                onChange={() => setMethod(m.id)}
-                className="mt-1"
-              />
-              <span>
-                <span className="font-pixel text-xs tracking-widest">{m.label.toUpperCase()}</span>
-                <span className="block text-sm text-muted-foreground">{m.detail}</span>
-              </span>
-            </label>
-            {m.id === "yape" && method === "yape" && (
-              <div className="mt-3 flex justify-center border-2 border-border bg-card p-4">
-                {settings?.hasYapeQr ? (
-                  <img src={yapeQrUrl()} alt="Código QR de Yape" className="w-48" />
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Aún no hay un QR configurado; usa el número de Yape indicado arriba.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {methods.length === 0 ? (
+        <p className="border-2 border-dashed border-border p-4 text-sm text-muted-foreground">
+          Aún no hay métodos de pago configurados. Escríbenos por WhatsApp para coordinar tu pago.
+        </p>
+      ) : (
+        <div className="grid gap-3">
+          {methods.map((m) => (
+            <div key={m.id}>
+              <label
+                className={`flex cursor-pointer gap-3 border-2 p-4 ${
+                  method === m.name ? "border-primary bg-secondary" : "border-border"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="method"
+                  value={m.name}
+                  checked={method === m.name}
+                  onChange={() => setMethod(m.name)}
+                  className="mt-1"
+                />
+                <span>
+                  <span className="font-pixel text-xs tracking-widest">{m.name.toUpperCase()}</span>
+                  <span className="block text-sm whitespace-pre-line text-muted-foreground">{m.instructions}</span>
+                </span>
+              </label>
+              {method === m.name && m.hasQr && (
+                <div className="mt-3 flex justify-center border-2 border-border bg-card p-4">
+                  <img src={paymentMethodQrUrl(m.id)} alt={`Código QR de ${m.name}`} className="w-48" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="space-y-2">
-        <Label htmlFor="ref">Número de operación o referencia</Label>
+        <Label htmlFor="ref">Observación (opcional)</Label>
         <Textarea
           id="ref"
           value={reference}
           maxLength={120}
           rows={2}
           onChange={(e) => setReference(e.target.value)}
-          placeholder="Ej. 0012345 — Yape a nombre de María F."
+          placeholder="Ej. Yape a nombre de María F."
         />
       </div>
 
       <div className="space-y-2">
         <Label className="flex items-center gap-2">
-          <Paperclip className="size-4" /> Comprobante de pago (opcional, imagen o PDF, máx. 10MB)
+          <Paperclip className="size-4" /> Imagen del comprobante de pago (obligatorio, máx. 10MB)
         </Label>
         <Dropzone file={file} onChange={setFile} />
       </div>
 
-      <Button type="submit" disabled={busy} className="font-pixel gap-2 text-xs tracking-widest">
+      <Button
+        type="submit"
+        disabled={busy || methods.length === 0 || !file}
+        size="lg"
+        className="font-pixel w-full gap-2 text-sm tracking-widest"
+      >
         {busy ? "ENVIANDO…" : submitLabel.toUpperCase()}
         {!busy && <Send className="size-4" />}
       </Button>
@@ -601,46 +653,26 @@ function PaymentSection({
 
   return (
     <>
-      <motion.div
-        {...fadeUp}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="print-block mb-8 inline-block bg-background/95 px-5 py-4"
-      >
-        <p className="font-pixel text-[10px] tracking-widest text-primary">&gt; PAGO.SYS</p>
-        <h1 className="font-display text-pop mt-2 text-5xl leading-none text-accent sm:text-6xl">
-          Paga tu entrada
-        </h1>
-      </motion.div>
+      {settings && (
+        <motion.div {...fadeUp} transition={{ duration: 0.5, ease: "easeOut" }} className="mb-6">
+          <PriceBanner settings={settings} />
+        </motion.div>
+      )}
 
       <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}>
         <Stepper paid={registration.status === "paid"} />
-      </motion.div>
-
-      <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}>
-      <RetroWindow title="TICKET.DAT">
-        <div className="bg-ink p-6 text-center">
-          <p className="font-pixel text-[10px] tracking-widest text-electric">TU CÓDIGO DE ENTRADA</p>
-          <p className="font-pixel text-glow mt-2 text-3xl tracking-widest text-accent">
-            {registration.ticketCode}
-            <span className="cursor-blink">_</span>
-          </p>
-          <p className="mt-2 text-sm text-background/70">
-            {user.nombres} {user.apellidos} · {user.email}
-          </p>
-        </div>
-      </RetroWindow>
       </motion.div>
 
       {registration.status === "pending" && (
         <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }} className="mt-6">
           <RetroWindow title="PAGO.EXE">
             <form onSubmit={submitPay} className="space-y-5 p-6">
-              <h2 className="font-pixel text-lg tracking-widest text-primary">
+              <h2 className="font-pixel text-glow text-4xl tracking-widest text-primary sm:text-5xl">
                 PAGA S/ {registration.amount}.00
               </h2>
               <p className="text-sm text-muted-foreground">
-                Realiza el pago por el medio que prefieras, sube tu comprobante y usa tu código{" "}
-                <strong className="font-pixel">{registration.ticketCode}</strong> como concepto.
+                Realiza el pago por el medio que prefieras y sube tu comprobante; en la referencia
+                incluye tu nombre completo para poder ubicarte.
               </p>
               {paymentFields("Enviar comprobante")}
             </form>
@@ -655,18 +687,22 @@ function PaymentSection({
               <p className="flex items-center gap-2 font-pixel text-xs tracking-widest text-electric">
                 <Clock3 className="size-4" /> SE ESTÁ VALIDANDO TU PEDIDO…
               </p>
-              <PixelLoader />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-lg text-muted-foreground">
                 Recibimos tu comprobante. En el transcurso del día te llegará una notificación a tu
-                correo <strong>{user.email}</strong> confirmando tu inscripción; mientras tanto ya
-                puedes ver tu código QR provisional.
+                correo <strong>{user.email}</strong> confirmando tu inscripción.
               </p>
-              <a
-                href="/mi-entrada"
-                className="font-pixel inline-flex bg-primary px-5 py-3 text-xs tracking-widest text-primary-foreground"
-              >
-                &gt;&gt; VER MI ENTRADA Y QR
-              </a>
+              <div className="flex flex-wrap gap-3">
+                {settings?.whatsapp && (
+                  <a
+                    href={`https://wa.me/${settings.whatsapp}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-pixel inline-flex items-center gap-2 bg-accent px-5 py-3 text-xs tracking-widest text-accent-foreground"
+                  >
+                    <MessageCircle className="size-4" /> ESCRÍBENOS AL WHATSAPP
+                  </a>
+                )}
+              </div>
             </div>
           </RetroWindow>
         </motion.div>
@@ -706,12 +742,6 @@ function PaymentSection({
               {paymentFields("Reenviar comprobante")}
             </form>
           </RetroWindow>
-        </motion.div>
-      )}
-
-      {settings && (
-        <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }} className="mt-4">
-          <PriceBanner settings={settings} />
         </motion.div>
       )}
     </>

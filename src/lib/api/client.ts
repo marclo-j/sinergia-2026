@@ -58,6 +58,10 @@ export type AdminRegistrationRow = {
   hasReceipt: boolean;
   materialsPickedUp: boolean;
   checkedInAt: string | null;
+  createdAt: string;
+  paymentSubmittedAt: string | null;
+  approvedAt: string | null;
+  physicalPaymentApprovedAt: string | null;
   role: "attendee" | "admin";
   tipoDocumento: "dni" | "pasaporte";
   numeroDocumento: string;
@@ -70,8 +74,8 @@ export type Settings = {
   pricePreventa: number;
   precioVenta: number;
   preventaHasta: string;
+  whatsapp: string;
   currentPrice: { amount: number; label: "preventa" | "venta" };
-  hasYapeQr: boolean;
 };
 
 export type CatalogType = "iglesias" | "ministerios";
@@ -79,6 +83,13 @@ export type CatalogType = "iglesias" | "ministerios";
 export type CatalogItem = {
   id: string;
   name: string;
+};
+
+export type PaymentMethodItem = {
+  id: string;
+  name: string;
+  instructions: string;
+  hasQr: boolean;
 };
 
 class ApiError extends Error {}
@@ -146,10 +157,14 @@ export function fetchAdminRegistrations() {
   return request<{ registrations: AdminRegistrationRow[] }>("/admin/registrations");
 }
 
-export function setRegistrationStatus(id: string, status: RegistrationStatus) {
+export function setRegistrationStatus(
+  id: string,
+  status: RegistrationStatus,
+  payment?: { paymentMethod?: string; paymentReference?: string },
+) {
   return request<{ registration: AdminRegistrationRow }>(`/admin/registrations/${id}/status`, {
     method: "PATCH",
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, ...payment }),
   });
 }
 
@@ -170,21 +185,16 @@ export function fetchSettings() {
   return request<{ settings: Settings }>("/settings");
 }
 
-export function yapeQrUrl() {
-  return `${API_URL}/settings/qr`;
-}
-
-export function updateSettings(payload: { pricePreventa: number; precioVenta: number; preventaHasta: string }) {
+export function updateSettings(payload: {
+  pricePreventa: number;
+  precioVenta: number;
+  preventaHasta: string;
+  whatsapp?: string;
+}) {
   return request<{ settings: Settings }>("/admin/settings", {
     method: "PUT",
     body: JSON.stringify(payload),
   });
-}
-
-export function uploadYapeQr(file: File) {
-  const form = new FormData();
-  form.set("qr", file);
-  return request<{ settings: Settings }>("/admin/settings/qr", { method: "POST", body: form });
 }
 
 export function fetchCatalog(type: CatalogType) {
@@ -202,12 +212,59 @@ export function deleteCatalogItem(type: CatalogType, id: string) {
   return request<{ ok: true }>(`/admin/catalog/${type}/${id}`, { method: "DELETE" });
 }
 
-export async function openReceipt(id: string) {
+export function fetchPaymentMethods() {
+  return request<{ methods: PaymentMethodItem[] }>("/payment-methods");
+}
+
+export type PaymentMethodInput = {
+  name: string;
+  instructions?: string;
+  qrFile?: File | null;
+};
+
+function paymentMethodFormData({ name, instructions, qrFile }: PaymentMethodInput) {
+  const form = new FormData();
+  form.set("name", name);
+  if (instructions) form.set("instructions", instructions);
+  if (qrFile) form.set("qr", qrFile);
+  return form;
+}
+
+export function createPaymentMethod(input: PaymentMethodInput) {
+  return request<{ method: PaymentMethodItem }>("/admin/payment-methods", {
+    method: "POST",
+    body: paymentMethodFormData(input),
+  });
+}
+
+export function updatePaymentMethod(id: string, input: PaymentMethodInput) {
+  return request<{ method: PaymentMethodItem }>(`/admin/payment-methods/${id}`, {
+    method: "PATCH",
+    body: paymentMethodFormData(input),
+  });
+}
+
+export function deletePaymentMethod(id: string) {
+  return request<{ ok: true }>(`/admin/payment-methods/${id}`, { method: "DELETE" });
+}
+
+export function paymentMethodQrUrl(id: string) {
+  return `${API_URL}/payment-methods/${id}/qr`;
+}
+
+export function registerPhysicalPayment(id: string, reference?: string) {
+  return request<{ registration: AdminRegistrationRow }>(`/admin/registrations/${id}/physical-payment`, {
+    method: "POST",
+    body: JSON.stringify({ reference }),
+  });
+}
+
+export async function fetchReceipt(id: string): Promise<{ url: string; type: string }> {
   const token = getToken();
   const res = await fetch(`${API_URL}/admin/registrations/${id}/receipt`, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
   if (!res.ok) throw new ApiError("No pudimos abrir el comprobante");
   const blob = await res.blob();
-  window.open(URL.createObjectURL(blob), "_blank", "noopener");
+  return { url: URL.createObjectURL(blob), type: blob.type };
 }

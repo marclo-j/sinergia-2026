@@ -1,15 +1,18 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { Search, ShieldCheck } from "lucide-react";
+import { Search, ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchAdminRegistrations, type AdminRegistrationRow } from "@/lib/api/client";
 import { Input } from "@/components/ui/input";
+
+const PAGE_SIZE = 10;
 
 export function AdminUsuarios() {
   const { user, loading } = useAuth();
   const isAdmin = user?.role === "admin";
   const [rows, setRows] = useState<AdminRegistrationRow[]>([]);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     if (!loading && !user) window.location.href = "/auth";
@@ -38,6 +41,20 @@ export function AdminUsuarios() {
         .some((v) => v!.toLowerCase().includes(q)),
     );
   }, [rows, query]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pagedRows = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page],
+  );
+
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
 
   if (loading) {
     return <p className="p-10 text-muted-foreground">Cargando…</p>;
@@ -83,7 +100,7 @@ export function AdminUsuarios() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((r) => (
+            {pagedRows.map((r) => (
               <tr key={r.id} className="border-t border-border">
                 <td className="p-2">{r.fullName}</td>
                 <td className="p-2 font-mono text-xs uppercase">
@@ -116,6 +133,32 @@ export function AdminUsuarios() {
           </tbody>
         </table>
       </div>
+
+      {filtered.length > 0 && (
+        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+          <p>
+            Página {page} de {totalPages} · {filtered.length} usuarios
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="flex items-center gap-1 rounded-md border border-border px-2 py-1 disabled:opacity-40"
+            >
+              <ChevronLeft className="size-4" /> Anterior
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="flex items-center gap-1 rounded-md border border-border px-2 py-1 disabled:opacity-40"
+            >
+              Siguiente <ChevronRight className="size-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
