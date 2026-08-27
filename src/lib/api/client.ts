@@ -57,6 +57,8 @@ export type AdminRegistrationRow = {
   paymentReference: string | null;
   hasReceipt: boolean;
   materialsPickedUp: boolean;
+  materialsPickedUpAt: string | null;
+  materialsDeliveredBy: string | null;
   checkedInAt: string | null;
   createdAt: string;
   paymentSubmittedAt: string | null;

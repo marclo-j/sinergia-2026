@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 // Merch, Inscripción) — solo las secciones del equipo organizador.
 const links = [
   { to: "/admin/entradas", label: "Entradas" },
+  { to: "/admin/materiales", label: "Materiales" },
   { to: "/admin/usuarios", label: "Usuarios" },
   { to: "/admin/configuracion", label: "Configuración" },
 ] as const;

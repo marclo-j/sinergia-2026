@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   fetchAdminRegistrations,
   setRegistrationStatus,
-  toggleRegistrationMaterials,
   checkinTicket,
   fetchReceipt,
   registerPhysicalPayment,
@@ -203,15 +202,6 @@ export function AdminEntradas() {
     setReceipt(null);
   };
 
-  const toggleMaterials = async (row: AdminRegistrationRow) => {
-    try {
-      await toggleRegistrationMaterials(row.id);
-      reload();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No pudimos actualizar los materiales");
-    }
-  };
-
   const validate = async () => {
     const ticket = code.trim().toUpperCase();
     if (!ticket) return;
@@ -322,14 +312,13 @@ export function AdminEntradas() {
               <th className="p-2">Pago</th>
               <th className="p-2">Fechas</th>
               <th className="p-2">Estado</th>
-              <th className="p-2">Materiales</th>
               <th className="p-2">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {filteredRows.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-6 text-center text-muted-foreground">
+                <td colSpan={6} className="p-6 text-center text-muted-foreground">
                   No hay inscripciones en esta categoría.
                 </td>
               </tr>
@@ -375,11 +364,6 @@ export function AdminEntradas() {
                   <span className={`rounded-full px-2 py-0.5 text-xs ${statusBadgeClass[r.status]}`}>
                     {statusLabel[r.status]}
                   </span>
-                </td>
-                <td className="p-2">
-                  <button className="text-xs underline" onClick={() => toggleMaterials(r)}>
-                    {r.materialsPickedUp ? "Recogidos" : "Pendiente"}
-                  </button>
                 </td>
                 <td className="p-2">
                   <div className="flex flex-col items-stretch gap-2">
