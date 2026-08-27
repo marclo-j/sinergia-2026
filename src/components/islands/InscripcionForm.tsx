@@ -22,6 +22,7 @@ import {
   UserCheck,
   CreditCard,
   X,
+  Check,
   MessageCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -464,6 +465,7 @@ function Stepper({ paid }: { paid: boolean }) {
       <li className="print-block flex flex-1 items-center gap-3 bg-accent p-3 text-accent-foreground">
         <UserCheck className="size-5 shrink-0" />
         <span className="font-pixel text-[10px] tracking-widest sm:text-xs">[01] INSCRIPCION</span>
+        <Check className="ml-auto size-4 shrink-0" />
       </li>
       <li className="hidden items-center font-pixel text-lg text-muted-foreground sm:flex">&gt;&gt;</li>
       <li
@@ -473,6 +475,7 @@ function Stepper({ paid }: { paid: boolean }) {
       >
         <CreditCard className="size-5 shrink-0" />
         <span className="font-pixel text-[10px] tracking-widest sm:text-xs">[02] PAGO</span>
+        {paid && <Check className="ml-auto size-4 shrink-0" />}
       </li>
     </ol>
   );

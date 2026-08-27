@@ -52,7 +52,7 @@ export function MiEntrada() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-14">
-      <h1 className="font-display text-4xl">Mi entrada</h1>
+      <h1 className="font-pixel text-2xl tracking-widest uppercase">Mi entrada</h1>
 
       {loading && <p className="mt-6 text-muted-foreground">Cargando…</p>}
 
@@ -61,7 +61,7 @@ export function MiEntrada() {
           <p className="text-muted-foreground">Todavía no tienes una inscripción registrada.</p>
           <a
             href="/inscripcion"
-            className="mt-4 inline-flex bg-primary px-5 py-3 font-display text-sm text-primary-foreground"
+            className="mt-4 inline-flex bg-primary px-5 py-3 font-pixel text-xs tracking-widest text-primary-foreground uppercase"
           >
             Inscribirme
           </a>
@@ -87,19 +87,19 @@ export function MiEntrada() {
           <div className="space-y-4">
             <div className="print-block bg-card p-5">
               <p className="text-xs uppercase tracking-widest text-muted-foreground">Asistente</p>
-              <p className="font-display text-xl normal-case">
+              <p className="font-pixel text-base tracking-widest uppercase">
                 {user.nombres} {user.apellidos}
               </p>
             </div>
 
             <div className={`print-block p-5 ${s.tone}`}>
-              <p className="flex items-center gap-2 font-display text-sm">
+              <p className="flex items-center gap-2 font-pixel text-xs tracking-widest uppercase">
                 <s.icon className="size-5" /> {s.label}
               </p>
             </div>
 
             <div className="print-block bg-card p-5">
-              <p className="flex items-center gap-2 font-display text-sm">
+              <p className="flex items-center gap-2 font-pixel text-xs tracking-widest uppercase">
                 <PackageCheck className="size-5" /> Materiales del asistente
               </p>
               {registration.materialsPickedUp ? (
@@ -117,7 +117,7 @@ export function MiEntrada() {
                   </p>
                   <button
                     onClick={markMaterials}
-                    className="mt-3 inline-flex bg-accent px-4 py-2 font-display text-sm text-accent-foreground"
+                    className="mt-3 inline-flex bg-accent px-4 py-2 font-pixel text-xs tracking-widest text-accent-foreground uppercase"
                   >
                     Ya recogí mis materiales
                   </button>
