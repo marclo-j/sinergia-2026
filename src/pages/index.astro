@@ -41,6 +41,7 @@ const days = [
 			/>
 			<div class="absolute inset-0 surface-heat opacity-80"></div>
 			<img src="/hero/sinergia.jpg" alt="" class="absolute inset-0 z-[5] mx-auto my-auto min-h-[870px] w-auto object-contain" />
+			<div class="absolute inset-0 bg-black/20 z-[8]"></div>
 
 			<div class="relative z-10 flex min-h-[calc(985px-10rem)] flex-col justify-end gap-10 pl-4 pr-4 pt-10 pb-4 md:pl-10 md:pr-10 md:pt-16 md:pb-6">
 				<div class="flex flex-col gap-6">
@@ -52,11 +53,11 @@ const days = [
 					</p>
 					<a
 						href="/inscripcion"
-						class="inline-flex items-center gap-4 px-5 py-4 font-display text-3xl tracking-wide bg-[#102a49] transition-transform hover:-translate-y-0.5 self-start text-white"
+						class="uppercase inline-flex items-center gap-4 px-5 py-4 font-display text-2xl tracking-wide bg-[#102a49] transition-transform hover:-translate-y-0.5 self-start text-white"
 					>
 						Quiero ser parte <ArrowRight className="size-8" />
 					</a>
-					<p class="font-display text-2xl text-primary-foreground">
+					<p class="font-display text-2xl text-primary-foreground uppercase">
 						Preventa con cupos limitados
 					</p>
 				</div>
@@ -80,11 +81,13 @@ const days = [
 		</section>
 
 		<!-- COUNTDOWN -->
-		<section class="bg-electric text-electric-foreground">
-			<div class="mx-auto flex max-w-6xl flex-wrap items-center gap-6 px-4 py-8">
-				<p class="font-display text-xl">Faltan:</p>
+		<section class="relative bg-electric text-electric-foreground overflow-hidden">
+			<img src="/countdown/bg_reloj.png" alt="" class="absolute inset-0 z-[1] h-full w-full object-cover" />
+			<div class="absolute inset-0 z-[2] bg-electric/30"></div>
+			<div class="relative z-10 mx-auto md:flex max-w-6xl flex-wrap items-center gap-6 px-4 py-8">
+				<p class="font-medium text-3xl">FALTAN:</p>
 				<Countdown client:load />
-				<p class="ml-auto hidden font-display text-sm tracking-[0.2em] md:block">
+				<p class="ml-auto hidden font-medium text-xl tracking-[0.2em] md:block">
 					30 · 31 Oct · 01 Nov
 				</p>
 			</div>
