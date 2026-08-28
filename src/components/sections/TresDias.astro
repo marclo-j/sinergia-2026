@@ -1,0 +1,41 @@
+---
+import { Image } from "astro:assets";
+import heroBg from "@/assets/hero/bg.webp";
+
+const days = [
+  { n: "30", month: "Octubre", label: "Día 1", text: "Una mirada al pasado. Las raíces de nuestra adoración." },
+  { n: "31", month: "Octubre", label: "Día 2", text: "Una generación que adora. Una iglesia que permanece." },
+  { n: "01", month: "Noviembre", label: "Día 3", text: "Miramos hacia adelante. Adoramos con propósito." },
+];
+---
+
+<section class="relative overflow-hidden">
+  <Image
+    src={heroBg}
+    alt=""
+    class="absolute inset-0 z-[1] h-full w-full object-cover"
+  />
+  <div class="relative z-10 mx-auto max-w-7xl px-4 py-16">
+    <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <h2 class="font-extrabold text-4xl leading-none text-primary-foreground md:text-6xl">
+        3 días que<br />nos inspiran
+      </h2>
+      <p class="max-w-sm text-primary-foreground/90 md:text-right text-xl font-semibold">
+        → Cada día nos recuerda que el Señor fue, es y seguirá siendo fiel
+      </p>
+    </div>
+
+    <div class="mt-10 lg:grid gap-14 space-y-3 lg:space-y-0 lg:grid-cols-3" data-stagger>
+      {days.map((d) => (
+        <article class="flex lg:size-[360px] flex-col bg-[#102a49]/70 p-6">
+          <p class="font-bold text-4xl text-[#ffbb5d]">{d.label}</p>
+          <p class="mt-2 text-lg text-background/90">{d.text}</p>
+          <div class="mt-auto flex items-end justify-end gap-2 pt-8 text-background">
+            <span class="font-bold text-8xl">{d.n}</span>
+            <span class="vertical-text-cc pb-1 font-medium text-3xl uppercase">{d.month}</span>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

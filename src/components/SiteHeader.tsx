@@ -1,7 +1,8 @@
-import { Menu } from "lucide-react";
 import { useState } from "react";
+import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import logoSinergia from "@/assets/hero/sinergia_logo.webp";
 
 const links = [
   { to: "/", label: "Inicio" },
@@ -10,88 +11,171 @@ const links = [
   { to: "/inscripcion", label: "Inscripción" },
 ] as const;
 
+const comingSoonLinks = new Set(["/programa", "/merch"]);
+
+function NavLink({
+  link,
+  mobile = false,
+  onClick,
+}: {
+  link: (typeof links)[number];
+  mobile?: boolean;
+  onClick?: () => void;
+}) {
+  const isComingSoon = comingSoonLinks.has(link.to);
+
+  return (
+    <span
+      className={
+        isComingSoon
+          ? `relative inline-flex items-center ${mobile ? "flex-row gap-2" : "flex-col"}`
+          : "contents"
+      }
+    >
+      {isComingSoon ? (
+        <button
+          type="button"
+          disabled
+          className={`font-inherit border-0 bg-transparent p-0 text-inherit disabled:cursor-not-allowed disabled:opacity-100 ${mobile ? "py-2" : "transition-colors"}`}
+        >
+          {link.label}
+        </button>
+      ) : (
+        <a
+          href={link.to}
+          className={
+            mobile
+              ? "relative py-2"
+              : "font-nav transition-colors hover:text-accent"
+          }
+          onClick={onClick}
+        >
+          {link.label}
+        </a>
+      )}
+      {isComingSoon && (
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none -mt-0.5 -rotate-6 whitespace-nowrap rounded-[5px] border-2 border-black bg-red-500 px-1.5 py-0.5 font-nav text-[8px] font-extrabold leading-none text-white shadow-[1px_2px_0_#000] ${mobile ? "mt-0 text-[7px]" : "md:text-[9px]"}`}
+        >
+          PRÓXIMAMENTE
+        </span>
+      )}
+    </span>
+  );
+}
+
 export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
-  const { user, registration, logout } = useAuth();
-  const isPaid = registration?.status === "paid";
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
-  const signOut = () => {
-    logout();
+  const signOut = async () => {
+    await supabase.auth.signOut();
     window.location.href = "/";
   };
 
-  const isActive = (to: string) => (to === "/" ? currentPath === "/" : currentPath.startsWith(to));
+  const isActive = (to: string) =>
+    to === "/" ? currentPath === "/" : currentPath.startsWith(to);
 
   return (
     <header className="sticky top-0 z-50 bg-primary text-primary-foreground">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <a href="/" className="font-display text-sm tracking-[0.2em] uppercase">
-          Sinergia<span className="text-accent"> Vol. II</span>
+      <div className="relative mx-auto flex w-full items-center justify-between gap-4 px-9 py-5">
+        <a href="/" className="xl:hidden" aria-label="Ir al inicio">
+          <img
+            src={logoSinergia.src}
+            alt="Sinergia"
+            className="h-5 w-auto max-w-full scale-[2.5] object-contain"
+          />
         </a>
 
-        <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
+        <a
+          href="/"
+          className="hidden items-center xl:flex"
+          aria-label="Ir al inicio"
+        >
+          <img
+            src={logoSinergia.src}
+            alt="Sinergia"
+            className="h-5 w-auto max-w-full scale-[2.5] object-contain"
+          />
+        </a>
+
+        <nav className="font-nav hidden items-center justify-end gap-16 text-center text-2xl font-medium xl:ml-auto xl:flex">
           {links.map((l) => (
-            <a
-              key={l.to}
-              href={l.to}
-              className={`transition-colors hover:text-accent ${isActive(l.to) ? "text-accent" : ""}`}
-            >
-              {l.label}
-            </a>
+            <NavLink key={l.to} link={l} />
           ))}
           {user ? (
             <>
-              {user.role === "admin" && (
-                <a href="/admin/entradas" className="transition-colors hover:text-accent">
-                  Panel
-                </a>
-              )}
-              {isPaid && (
-                <a href="/mi-entrada" className="transition-colors hover:text-accent">
-                  Mi entrada
-                </a>
-              )}
+              <a
+                href="/mi-entrada"
+                className="font-nav transition-colors hover:text-accent"
+              >
+                Mi entrada
+              </a>
               <Button variant="ghost" size="sm" onClick={signOut}>
                 Salir
               </Button>
             </>
           ) : (
-            <a href="/auth" className="transition-colors hover:text-accent">
-              Login
+            <a
+              href="/auth"
+              className="font-nav transition-colors hover:text-accent"
+            >
+              Ingresar
             </a>
           )}
         </nav>
 
         <button
           type="button"
-          aria-label="Abrir menú"
+          aria-label={open ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
           onClick={() => setOpen((v) => !v)}
-          className="md:hidden"
+          className="flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-md xl:hidden"
         >
-          <Menu className="size-5" />
+          <span
+            aria-hidden="true"
+            className={`block h-0.5 w-7 origin-center bg-primary-foreground transition-[transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${open ? "translate-y-2 rotate-45" : ""}`}
+          />
+          <span
+            aria-hidden="true"
+            className={`block h-0.5 w-7 bg-primary-foreground transition-[opacity] duration-150 ease-out motion-reduce:transition-none ${open ? "opacity-0" : ""}`}
+          />
+          <span
+            aria-hidden="true"
+            className={`block h-0.5 w-7 origin-center bg-primary-foreground transition-[transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${open ? "-translate-y-2 -rotate-45" : ""}`}
+          />
         </button>
       </div>
 
       {open && (
-        <nav className="flex flex-col gap-1 border-t border-primary-foreground/20 px-4 pb-4 text-sm md:hidden">
+        <nav
+          id="mobile-menu"
+          className="font-nav flex flex-col items-center gap-1 border-t border-primary-foreground/20 px-4 pb-4 text-center text-sm xl:hidden"
+        >
           {links.map((l) => (
-            <a key={l.to} href={l.to} className="py-2" onClick={() => setOpen(false)}>
-              {l.label}
-            </a>
+            <NavLink
+              key={l.to}
+              link={l}
+              mobile
+              onClick={() => setOpen(false)}
+            />
           ))}
           {user ? (
             <>
-              {user.role === "admin" && (
-                <a href="/admin/entradas" className="py-2" onClick={() => setOpen(false)}>
-                  Panel
-                </a>
-              )}
-              {isPaid && (
-                <a href="/mi-entrada" className="py-2" onClick={() => setOpen(false)}>
-                  Mi entrada
-                </a>
-              )}
-              <button type="button" className="py-2 text-left" onClick={signOut}>
+              <a
+                href="/mi-entrada"
+                className="py-2"
+                onClick={() => setOpen(false)}
+              >
+                Mi entrada
+              </a>
+              <button
+                type="button"
+                className="py-2 text-left"
+                onClick={signOut}
+              >
                 Salir
               </button>
             </>

@@ -1,0 +1,28 @@
+---
+import { Image } from "astro:assets";
+import pilaresBg from "@/assets/pilares/pilares.webp";
+
+const pillars = [
+  { n: "01", title: "Adoración", text: "No se trata solamente de música. Se trata de una vida rendida a Dios." },
+  { n: "02", title: "Generaciones", text: "Pasado, presente y futuro unidos para glorificar a Jesús." },
+  { n: "03", title: "Conexión", text: "Personas, ministerios y talentos que se unen en un mismo propósito." },
+  { n: "04", title: "Misión", text: "Adorar a Dios y llevar su nombre más allá de nuestras paredes." },
+];
+---
+
+<section class="relative overflow-hidden">
+  <Image
+    src={pilaresBg}
+    alt=""
+    class="absolute inset-0 z-[1] h-full w-full object-cover"
+  />
+  <div class="relative z-10 mx-auto grid max-w-7xl gap-7 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4" data-stagger>
+    {pillars.map((p) => (
+      <article class="bg-[#f8af48]/80 p-5">
+        <p class="text-xl font-semibold text-white">{p.n}</p>
+        <h3 class="mt-2 text-3xl font-bold text-primary">{p.title}</h3>
+        <p class="mt-2 text-lg font-medium text-primary">{p.text}</p>
+      </article>
+    ))}
+  </div>
+</section>

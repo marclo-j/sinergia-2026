@@ -1,0 +1,34 @@
+---
+import { Image } from "astro:assets";
+import heroBg from "@/assets/hero/bg.webp";
+import { LabelSlideButton } from "@/components/LabelSlideButton";
+---
+
+<section class="relative overflow-hidden">
+  <Image
+    src={heroBg}
+    alt=""
+    class="absolute inset-0 z-[1] h-full w-full object-cover"
+  />
+  <div class="relative z-10 mx-auto max-w-7xl px-4 py-20" data-animate="fade-up">
+    <h2 class="font-bold text-4xl leading-none text-primary-foreground md:text-6xl">
+      ¿Estás listo para<br />ser parte?
+    </h2>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <LabelSlideButton
+        client:visible
+        link="/inscripcion"
+        newTab={false}
+        label="Inscribirme ahora"
+        rounded={100}
+        padding="14px 26px"
+        font={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "Poppins, sans-serif" }}
+        style={{ alignSelf: "flex-start" }}
+        colors={{ fill: "#102a49", textColor: "#ffffff", hoverFill: "#FC731C", hoverTextColor: "#ffffff" }}
+        icon={{ side: "right", background: "#204e84", color: "#ffffff", hoverBackground: "#ffffff", hoverColor: "#102a49", size: 20, padding: 10, rounded: 100, restSymbol: "↗", hoverSymbol: "↗", angle: 315 }}
+        border={{ borderColor: "#102a49", borderStyle: "solid", borderWidth: 0 }}
+        gap={16}
+      />
+    </div>
+  </div>
+</section>
