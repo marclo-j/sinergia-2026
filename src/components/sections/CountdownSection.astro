@@ -1,0 +1,21 @@
+---
+import { Image } from "astro:assets";
+import countdownBg from "@/assets/countdown/bg_reloj.webp";
+import { Countdown } from "@/components/islands/Countdown";
+---
+
+<section class="relative bg-electric text-electric-foreground overflow-hidden">
+  <Image
+    src={countdownBg}
+    alt=""
+    class="absolute inset-0 z-[1] h-full w-full object-cover"
+  />
+  <div class="absolute inset-0 z-[2] bg-electric/30"></div>
+  <div class="relative z-10 mx-auto flex max-w-6xl flex-col flex-wrap items-center gap-6 px-4 py-8 lg:flex-row" data-animate="fade-in">
+    <p class="font-medium text-3xl">FALTAN:</p>
+    <Countdown client:visible />
+    <p class="font-medium text-xl tracking-[0.2em] lg:ml-auto">
+      30 · 31 Oct · 01 Nov
+    </p>
+  </div>
+</section>

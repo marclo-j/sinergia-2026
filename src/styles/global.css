@@ -1,3 +1,8 @@
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
+@import "@fontsource/poppins/800.css";
 @import "tailwindcss" source(none);
 @source "../";
 
@@ -7,14 +12,6 @@
  * Sinergia Vol. II — sistema de diseño
  * Paleta: carmesí impreso, naranja incandescente, azul eléctrico, papel kraft.
  */
-
-@font-face {
-  font-family: "Black Magnum";
-  src: url("/fonts/BlackMagnum.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -65,9 +62,9 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-display: "Black Magnum", "Archivo Black", "Archivo", sans-serif;
-  --font-sans: "Barlow", system-ui, sans-serif;
-  --font-pixel: "Silkscreen", "Courier New", monospace;
+  --font-display: "Poppins", "Archivo", sans-serif;
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --font-nav: "Poppins", "Barlow", system-ui, sans-serif;
 }
 
 :root {
@@ -82,7 +79,7 @@
   --popover-foreground: oklch(0.21 0.03 40);
 
   /* carmesí de imprenta */
-  --primary: oklch(0.44 0.16 20);
+  --primary: #a82a2a;
   --primary-foreground: oklch(0.98 0.01 85);
 
   /* naranja incandescente */
@@ -133,7 +130,11 @@
     oklch(0.56 0.2 32) 45%,
     oklch(0.72 0.18 52) 100%
   );
-  --gradient-dusk: linear-gradient(160deg, oklch(0.3 0.11 22) 0%, oklch(0.5 0.2 258) 100%);
+  --gradient-dusk: linear-gradient(
+    160deg,
+    oklch(0.3 0.11 22) 0%,
+    oklch(0.5 0.2 258) 100%
+  );
   --shadow-print: 6px 6px 0 0 oklch(0.22 0.02 30 / 0.85);
   --shadow-soft: 0 18px 40px -22px oklch(0.22 0.02 30 / 0.6);
 }
@@ -189,13 +190,6 @@
   background-image: var(--gradient-dusk);
 }
 
-@utility surface-flyer {
-  background-image: url("/img/SINERGIA_SCREEN_Principal_fondo.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
 @utility grain-overlay {
   position: relative;
   isolation: isolate;
@@ -227,83 +221,8 @@
   text-orientation: mixed;
 }
 
-/* Titular grueso con contorno + sombra dura, como el logotipo "SINERGIA". */
-@utility text-pop {
-  -webkit-text-stroke: 2px var(--ink);
-  text-shadow: 5px 5px 0 var(--ink);
-  paint-order: stroke fill;
-}
-
-/* Líneas de escaneo tipo monitor CRT — se combina con grain-overlay. */
-@utility crt-scanlines {
-  position: relative;
-  isolation: isolate;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background-image: repeating-linear-gradient(
-      to bottom,
-      oklch(0 0 0 / 0.16) 0px,
-      oklch(0 0 0 / 0.16) 1px,
-      transparent 1px,
-      transparent 3px
-    );
-  }
-}
-
-/* Sombra suave para texto flotando directo sobre el fondo con textura. */
-@utility text-shadow-hard {
-  text-shadow: 0 2px 8px oklch(0 0 0 / 0.55);
-}
-
-/* Resplandor neón — usar con un color de texto (currentColor). */
-@utility text-glow {
-  text-shadow:
-    0 0 4px currentColor,
-    0 0 14px currentColor,
-    0 0 28px currentColor;
-}
-
-@keyframes retro-blink {
-  50% {
-    opacity: 0;
-  }
-}
-
-@utility cursor-blink {
-  animation: retro-blink 1s steps(1) infinite;
-}
-
-@keyframes pixel-load {
-  0%,
-  100% {
-    opacity: 0.15;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@utility pixel-load-bar {
-  animation: pixel-load 1.1s ease-in-out infinite;
-}
-
-/* Panel admin: nada de fuentes retro (Black Magnum / Silkscreen). Al
-   redefinir estas variables dentro del contenedor, todo lo que use las
-   utilidades font-display/font-sans/font-pixel adentro hereda Roboto. */
-.admin-scope {
-  --font-display: "Roboto", system-ui, sans-serif;
-  --font-sans: "Roboto", system-ui, sans-serif;
-  --font-pixel: "Roboto", system-ui, sans-serif;
-}
-
-@utility surface-antiguo {
-  background-image: url("/img/fondo_antiguo.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+@utility vertical-text-cc {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
 }

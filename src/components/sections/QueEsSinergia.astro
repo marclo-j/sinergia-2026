@@ -1,0 +1,40 @@
+---
+import { Image } from "astro:assets";
+import queEsSinergiaBg from "@/assets/sinergia/queessinergia.webp";
+---
+
+<section class="relative overflow-hidden">
+  <Image
+    src={queEsSinergiaBg}
+    alt=""
+    class="absolute inset-0 z-[1] h-full w-full object-cover"
+  />
+  <div class="relative z-10 mx-auto grid max-w-6xl gap-6 px-4 py-16 md:grid-cols-[auto_1fr_auto]">
+    <div class="print-block hidden items-center justify-center bg-sand px-4 py-6 md:flex">
+      <h2 class="vertical-text-cc font-extrabold text-4xl text-kraft-foreground">¿Qué es Sinergia?</h2>
+    </div>
+    <div class="print-block bg-sand/60 p-6 md:p-8" data-animate="fade-up">
+      <h2 class="font-semibold text-lg md:hidden">
+        ¿Qué es Sinergia?
+      </h2>
+      <span class="print-block flex items-center justify-center bg-sand px-6 py-3">
+        <p class="font-bold text-xl tracking-[0.1em] text-kraft-foreground">
+          Vol. II — A través del tiempo
+        </p>
+      </span>
+      <p class="mt-6 text-xl text-kraft-foreground">
+        Una conferencia que nos invita a mirar más allá de las tendencias, los estilos y las
+        generaciones. La adoración cambia de formas, pero su esencia permanece:{" "}
+        <strong class="text-primary">Jesús sigue siendo el centro.</strong>
+      </p>
+      <p class="mt-5 text-xl text-kraft-foreground">
+        Durante tres días nos reuniremos para aprender, adorar, conectar y recordar que cuando
+        diferentes generaciones, talentos y corazones se unen con un mismo propósito, ocurre
+        algo poderoso.
+      </p>
+    </div>
+    <div class="print-block hidden items-center justify-center bg-sand px-4 py-6 md:flex">
+      <p class="vertical-text-cc font-extrabold text-4xl text-kraft-foreground">2026</p>
+    </div>
+  </div>
+</section>
