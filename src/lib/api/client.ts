@@ -149,12 +149,6 @@ export function submitPayment(form: FormData) {
   });
 }
 
-export function markMaterialsPickedUp() {
-  return request<{ registration: PublicRegistration }>("/registration/materials", {
-    method: "POST",
-  });
-}
-
 export function fetchAdminRegistrations() {
   return request<{ registrations: AdminRegistrationRow[] }>("/admin/registrations");
 }

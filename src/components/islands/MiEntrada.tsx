@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { toast } from "sonner";
 import { BadgeCheck, Clock3, PackageCheck, XCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { markMaterialsPickedUp, type RegistrationStatus } from "@/lib/api/client";
+import type { RegistrationStatus } from "@/lib/api/client";
 
 const statusMap: Record<
   RegistrationStatus,
@@ -16,7 +15,7 @@ const statusMap: Record<
 };
 
 export function MiEntrada() {
-  const { user, registration, loading, refresh } = useAuth();
+  const { user, registration, loading } = useAuth();
   const [qr, setQr] = useState<string>("");
 
   useEffect(() => {
@@ -37,16 +36,6 @@ export function MiEntrada() {
       active = false;
     };
   }, [registration]);
-
-  const markMaterials = async () => {
-    try {
-      await markMaterialsPickedUp();
-      await refresh();
-      toast.success("Marcamos tus materiales como recogidos");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No pudimos actualizar tus materiales");
-    }
-  };
 
   const s = registration ? statusMap[registration.status] : null;
 
@@ -111,17 +100,10 @@ export function MiEntrada() {
                   .
                 </p>
               ) : (
-                <>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Aún no recoges tu kit (cuaderno, lapicero, credencial y stickers).
-                  </p>
-                  <button
-                    onClick={markMaterials}
-                    className="mt-3 inline-flex bg-accent px-4 py-2 font-pixel text-xs tracking-widest text-accent-foreground uppercase"
-                  >
-                    Ya recogí mis materiales
-                  </button>
-                </>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Aún no recoges tu kit (cuaderno, lapicero, credencial y stickers). Preséntate en el
+                  punto de materiales del evento para que el staff lo registre.
+                </p>
               )}
             </div>
 

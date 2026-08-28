@@ -671,7 +671,7 @@ function PaymentSection({
           <RetroWindow title="PAGO.EXE">
             <form onSubmit={submitPay} className="space-y-5 p-6">
               <h2 className="font-pixel text-glow text-4xl tracking-widest text-primary sm:text-5xl">
-                PAGA S/ {registration.amount}.00
+                TOTAL S/ {registration.amount}.00
               </h2>
               <p className="text-sm text-muted-foreground">
                 Realiza el pago por el medio que prefieras y sube tu comprobante; en la referencia
