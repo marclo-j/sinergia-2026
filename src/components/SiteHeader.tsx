@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import logoSinergia from "@/assets/hero/sinergia_logo.webp";
@@ -66,11 +65,11 @@ function NavLink({
 }
 
 export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const signOut = () => {
+    logout();
     window.location.href = "/";
   };
 

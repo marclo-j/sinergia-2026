@@ -1,5 +1,4 @@
 // Cliente para la API propia (backend/) — auth, datos personales/ministeriales y pago.
-// Reemplaza a Supabase solo en este flujo; Merch sigue usando Supabase aparte.
 
 const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://localhost:4000/api";
 const TOKEN_KEY = "sinergia_token";

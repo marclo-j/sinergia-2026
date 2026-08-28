@@ -2,7 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import { SiteHeader } from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter.astro";
-import { ProgramaTimeline } from "@/components/islands/ProgramaTimeline";
+import ComingSoon from "@/components/ComingSoon.astro";
 ---
 
 <Layout
@@ -29,7 +29,10 @@ import { ProgramaTimeline } from "@/components/islands/ProgramaTimeline";
 			</div>
 		</section>
 
-		<ProgramaTimeline client:visible />
+		<ComingSoon
+			title="El itinerario se publicará pronto"
+			message="Estamos afinando los horarios de los 3 días. Vuelve pronto para ver la línea de tiempo completa."
+		/>
 
 		<SiteFooter />
 	</div>

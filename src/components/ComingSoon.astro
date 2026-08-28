@@ -1,0 +1,17 @@
+---
+interface Props {
+  title: string;
+  message: string;
+}
+const { title, message } = Astro.props;
+---
+
+<section class="mx-auto max-w-2xl px-4 py-24 text-center">
+  <span
+    class="inline-block -rotate-3 rounded-[5px] border-2 border-black bg-red-500 px-3 py-1 font-nav text-xs font-extrabold text-white shadow-[2px_3px_0_#000]"
+  >
+    PRÓXIMAMENTE
+  </span>
+  <h2 class="mt-6 font-display text-2xl text-primary md:text-3xl">{title}</h2>
+  <p class="mt-3 text-muted-foreground">{message}</p>
+</section>

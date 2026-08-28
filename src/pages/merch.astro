@@ -2,7 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import { SiteHeader } from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter.astro";
-import { MerchStore } from "@/components/islands/MerchStore";
+import ComingSoon from "@/components/ComingSoon.astro";
 ---
 
 <Layout
@@ -24,7 +24,10 @@ import { MerchStore } from "@/components/islands/MerchStore";
 			</div>
 		</section>
 
-		<MerchStore client:visible />
+		<ComingSoon
+			title="La tienda oficial está en camino"
+			message="Estamos preparando el merch de Sinergia Vol. II. Vuelve pronto para reservar el tuyo."
+		/>
 
 		<SiteFooter />
 	</div>
