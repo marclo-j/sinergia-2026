@@ -1,11 +1,21 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { Search, ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ShieldCheck, ChevronLeft, ChevronRight, QrCode, CheckCircle2, XCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchAdminRegistrations, type AdminRegistrationRow } from "@/lib/api/client";
+import {
+  fetchAdminRegistrations,
+  fetchCheckinHistory,
+  type AdminRegistrationRow,
+  type CheckinLogRow,
+} from "@/lib/api/client";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 
 const PAGE_SIZE = 10;
+
+const formatDate = (value: string | null) =>
+  value ? new Date(value).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" }) : "—";
 
 export function AdminUsuarios() {
   const { user, loading } = useAuth();
@@ -13,6 +23,9 @@ export function AdminUsuarios() {
   const [rows, setRows] = useState<AdminRegistrationRow[]>([]);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [accessRow, setAccessRow] = useState<AdminRegistrationRow | null>(null);
+  const [checkins, setCheckins] = useState<CheckinLogRow[]>([]);
+  const [checkinsLoading, setCheckinsLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) window.location.href = "/auth";
@@ -56,6 +69,20 @@ export function AdminUsuarios() {
     setPage((p) => Math.min(p, totalPages));
   }, [totalPages]);
 
+  const openAccessDetail = async (row: AdminRegistrationRow) => {
+    setAccessRow(row);
+    setCheckins([]);
+    setCheckinsLoading(true);
+    try {
+      const { checkins: history } = await fetchCheckinHistory(row.id);
+      setCheckins(history);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No pudimos cargar el historial de acceso");
+    } finally {
+      setCheckinsLoading(false);
+    }
+  };
+
   if (loading) {
     return <p className="p-10 text-muted-foreground">Cargando…</p>;
   }
@@ -97,6 +124,7 @@ export function AdminUsuarios() {
               <th className="p-2">Iglesia</th>
               <th className="p-2">Ministerio</th>
               <th className="p-2">Rol</th>
+              <th className="p-2">Acceso</th>
             </tr>
           </thead>
           <tbody>
@@ -121,11 +149,16 @@ export function AdminUsuarios() {
                     {r.role}
                   </span>
                 </td>
+                <td className="p-2">
+                  <Button variant="outline" size="sm" onClick={() => openAccessDetail(r)}>
+                    <QrCode className="size-4" /> Detalle de acceso
+                  </Button>
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                <td colSpan={7} className="p-6 text-center text-muted-foreground">
                   No hay usuarios que coincidan con la búsqueda.
                 </td>
               </tr>
@@ -159,6 +192,77 @@ export function AdminUsuarios() {
           </div>
         </div>
       )}
+
+      <Dialog open={accessRow !== null} onClose={() => setAccessRow(null)} title="Detalle de acceso">
+        {accessRow && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Estado del ingreso de <strong className="uppercase">{accessRow.fullName}</strong>.
+            </p>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+              <dt className="text-muted-foreground">Código</dt>
+              <dd className="font-mono text-xs">{accessRow.ticketCode}</dd>
+              <dt className="text-muted-foreground">Estado de acceso</dt>
+              <dd>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    accessRow.checkedInAt
+                      ? "bg-accent text-accent-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {accessRow.checkedInAt ? "Validado" : "Sin validar"}
+                </span>
+              </dd>
+              <dt className="text-muted-foreground">Fecha y hora de validación</dt>
+              <dd>{formatDate(accessRow.checkedInAt)}</dd>
+            </dl>
+
+            <div>
+              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Historial de validaciones
+              </h3>
+              {checkinsLoading ? (
+                <p className="mt-2 text-sm text-muted-foreground">Cargando historial…</p>
+              ) : checkins.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Todavía no hay intentos de validación registrados para esta entrada.
+                </p>
+              ) : (
+                <ul className="mt-2 max-h-64 space-y-2 overflow-y-auto">
+                  {checkins.map((c) => (
+                    <li
+                      key={c.id}
+                      className={`flex items-start gap-2 rounded-md border p-2 text-sm ${
+                        c.success ? "border-accent/40 bg-accent/10" : "border-destructive/40 bg-destructive/10"
+                      }`}
+                    >
+                      {c.success ? (
+                        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-accent" />
+                      ) : (
+                        <XCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                      )}
+                      <span className="flex-1">
+                        {c.message ?? (c.success ? "Ingreso validado" : "Intento fallido")}
+                        {c.scannedBy && (
+                          <span className="block text-xs text-muted-foreground">Escaneado por {c.scannedBy}</span>
+                        )}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">{formatDate(c.createdAt)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setAccessRow(null)}>
+                Cerrar
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </main>
   );
 }

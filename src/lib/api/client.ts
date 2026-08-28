@@ -72,6 +72,14 @@ export type AdminRegistrationRow = {
   ministerio: string | null;
 };
 
+export type CheckinLogRow = {
+  id: string;
+  success: boolean;
+  message: string | null;
+  scannedBy: string | null;
+  createdAt: string;
+};
+
 export type Settings = {
   pricePreventa: number;
   precioVenta: number;
@@ -175,6 +183,10 @@ export function checkinTicket(ticketCode: string) {
     method: "POST",
     body: JSON.stringify({ ticketCode }),
   });
+}
+
+export function fetchCheckinHistory(id: string) {
+  return request<{ checkins: CheckinLogRow[] }>(`/admin/registrations/${id}/checkins`);
 }
 
 export function fetchSettings() {

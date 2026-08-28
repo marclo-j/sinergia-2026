@@ -39,6 +39,8 @@ const formatDate = (value: string | null) =>
     ? new Date(value).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" })
     : "—";
 
+const TICKET_PREFIX = "SIN26-";
+
 const statusLabel: Record<RegistrationStatus, string> = {
   pending: "Pendiente",
   review: "Pendiente",
@@ -82,6 +84,8 @@ export function AdminEntradas() {
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<{ row: AdminRegistrationRow; url: string; type: string } | null>(null);
   const [receiptLoading, setReceiptLoading] = useState(false);
+  const [pendingCheckin, setPendingCheckin] = useState<AdminRegistrationRow | null>(null);
+  const [checkinBusy, setCheckinBusy] = useState(false);
   const [reloading, setReloading] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodItem[]>([]);
   const [manualMethod, setManualMethod] = useState("");
@@ -202,9 +206,13 @@ export function AdminEntradas() {
     setReceipt(null);
   };
 
-  const validate = async () => {
-    const ticket = code.trim().toUpperCase();
-    if (!ticket) return;
+  const handleCodeChange = (raw: string) => {
+    const upper = raw.toUpperCase();
+    setCode(upper.startsWith(TICKET_PREFIX) ? upper.slice(TICKET_PREFIX.length) : upper);
+  };
+
+  const runCheckin = async (ticket: string) => {
+    setCheckinBusy(true);
     try {
       const { registration } = await checkinTicket(ticket);
       toast.success(`Ingreso válido — ${registration.fullName}`);
@@ -212,7 +220,30 @@ export function AdminEntradas() {
       reload();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No pudimos validar el ingreso");
+    } finally {
+      setCheckinBusy(false);
+      setPendingCheckin(null);
     }
+  };
+
+  const validate = () => {
+    const suffix = code.trim().toUpperCase();
+    if (!suffix) return;
+    const ticket = `${TICKET_PREFIX}${suffix}`;
+    const match = rows.find((r) => r.ticketCode.toUpperCase() === ticket);
+    if (match) {
+      // Conocemos a la persona: mostramos su ficha antes de validar el ingreso.
+      setPendingCheckin(match);
+    } else {
+      // No está en la lista cargada (código raro o datos desactualizados): igual
+      // intentamos validar directo contra el backend.
+      void runCheckin(ticket);
+    }
+  };
+
+  const confirmCheckin = () => {
+    if (!pendingCheckin) return;
+    void runCheckin(pendingCheckin.ticketCode);
   };
 
   const tabs = useMemo(
@@ -272,13 +303,17 @@ export function AdminEntradas() {
           <QrCode className="size-5" /> Validar entrada
         </h2>
         <div className="mt-3 flex gap-2">
-          <Input
-            value={code}
-            maxLength={20}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="SIN26-XXXX"
-            onKeyDown={(e) => e.key === "Enter" && validate()}
-          />
+          <div className="flex h-9 flex-1 items-center rounded-md border border-input bg-transparent px-3 shadow-sm focus-within:ring-1 focus-within:ring-ring">
+            <span className="text-sm text-muted-foreground select-none">{TICKET_PREFIX}</span>
+            <input
+              value={code}
+              maxLength={14}
+              onChange={(e) => handleCodeChange(e.target.value)}
+              placeholder="XXXX"
+              onKeyDown={(e) => e.key === "Enter" && validate()}
+              className="h-full flex-1 border-0 bg-transparent text-base uppercase outline-none placeholder:text-muted-foreground md:text-sm"
+            />
+          </div>
           <Button onClick={validate}>Validar</Button>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
@@ -554,6 +589,58 @@ export function AdminEntradas() {
               </Button>
               <Button onClick={confirmPhysicalPayment} disabled={busy}>
                 {busy ? "Procesando…" : "APROBAR COMO PAGO FÍSICO"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
+
+      <Dialog
+        open={pendingCheckin !== null}
+        onClose={() => !checkinBusy && setPendingCheckin(null)}
+        title="Confirmar validación de entrada"
+      >
+        {pendingCheckin && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              ¿Confirmas el ingreso de <strong className="uppercase">{pendingCheckin.fullName}</strong>?
+            </p>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+              <dt className="text-muted-foreground">Código</dt>
+              <dd className="font-mono text-xs">{pendingCheckin.ticketCode}</dd>
+              <dt className="text-muted-foreground">Asistente</dt>
+              <dd className="uppercase">{pendingCheckin.fullName}</dd>
+              <dt className="text-muted-foreground">Correo</dt>
+              <dd>{pendingCheckin.email}</dd>
+              <dt className="text-muted-foreground">Teléfono</dt>
+              <dd>{pendingCheckin.phone}</dd>
+              <dt className="text-muted-foreground">Documento</dt>
+              <dd className="uppercase">
+                {pendingCheckin.tipoDocumento} {pendingCheckin.numeroDocumento}
+              </dd>
+              <dt className="text-muted-foreground">Estado de pago</dt>
+              <dd>
+                <span className={`rounded-full px-2 py-0.5 text-xs ${statusBadgeClass[pendingCheckin.status]}`}>
+                  {statusLabel[pendingCheckin.status]}
+                </span>
+              </dd>
+            </dl>
+            {pendingCheckin.status !== "paid" && (
+              <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                Esta inscripción no tiene el pago confirmado; el backend rechazará la validación.
+              </p>
+            )}
+            {pendingCheckin.checkedInAt && (
+              <p className="rounded-md border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+                Ya se validó antes, el {formatDate(pendingCheckin.checkedInAt)}.
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setPendingCheckin(null)} disabled={checkinBusy}>
+                Cancelar
+              </Button>
+              <Button onClick={confirmCheckin} disabled={checkinBusy}>
+                {checkinBusy ? "Validando…" : "VALIDAR INGRESO"}
               </Button>
             </div>
           </div>

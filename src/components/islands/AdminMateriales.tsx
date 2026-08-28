@@ -1,6 +1,17 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { Search, ShieldCheck, ChevronLeft, ChevronRight, Package, RefreshCw } from "lucide-react";
+import jsQR from "jsqr";
+import {
+  Search,
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+  Package,
+  RefreshCw,
+  QrCode,
+  CameraOff,
+  CheckCircle2,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   fetchAdminRegistrations,
@@ -15,6 +26,12 @@ const PAGE_SIZE = 10;
 
 type FilterKey = "pendientes" | "entregados" | "todos";
 
+const TICKET_PREFIX = "SIN26-";
+
+// Tras un escaneo esperamos este tiempo antes de aceptar el mismo código de
+// nuevo, para no reabrir el popup varias veces mientras sigue frente a la cámara.
+const RESCAN_COOLDOWN_MS = 4000;
+
 const formatDate = (value: string | null) =>
   value ? new Date(value).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" }) : "—";
 
@@ -28,6 +45,28 @@ export function AdminMateriales() {
   const [reloading, setReloading] = useState(false);
   const [confirmRow, setConfirmRow] = useState<AdminRegistrationRow | null>(null);
   const [busy, setBusy] = useState(false);
+  const [lookupCode, setLookupCode] = useState("");
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number>(0);
+  const lastCodeRef = useRef<{ code: string; at: number } | null>(null);
+  // Espejos en ref de `rows` y `confirmRow`: así findAndOpen tiene una identidad
+  // estable y el efecto de la cámara no se reinicia en cada cambio de estado.
+  const rowsRef = useRef<AdminRegistrationRow[]>([]);
+  const confirmRowRef = useRef<AdminRegistrationRow | null>(null);
+
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
+
+  useEffect(() => {
+    confirmRowRef.current = confirmRow;
+  }, [confirmRow]);
 
   useEffect(() => {
     if (!loading && !user) window.location.href = "/auth";
@@ -55,6 +94,109 @@ export function AdminMateriales() {
       setReloading(false);
     }
   };
+
+  // Punto de entrada único para el buscador manual y la cámara: busca el
+  // código entre los asistentes con pago aprobado y abre directo el popup de
+  // confirmación de entrega (el mismo que usa la tabla).
+  const findAndOpen = useCallback((rawCode: string) => {
+    const ticket = rawCode.trim().toUpperCase();
+    if (!ticket) return;
+    if (confirmRowRef.current) return; // ya hay un popup abierto
+
+    const last = lastCodeRef.current;
+    if (last && last.code === ticket && Date.now() - last.at < RESCAN_COOLDOWN_MS) return;
+    lastCodeRef.current = { code: ticket, at: Date.now() };
+
+    const match = rowsRef.current.find((r) => r.ticketCode.toUpperCase() === ticket);
+    if (match) {
+      setCameraOpen(false);
+      setConfirmRow(match);
+    } else {
+      toast.error(`No encontramos una entrada con pago aprobado para ${ticket}`);
+    }
+  }, []);
+
+  const handleLookupChange = (raw: string) => {
+    const upper = raw.toUpperCase();
+    setLookupCode(upper.startsWith(TICKET_PREFIX) ? upper.slice(TICKET_PREFIX.length) : upper);
+  };
+
+  const submitLookup = (e: React.FormEvent) => {
+    e.preventDefault();
+    const suffix = lookupCode.trim();
+    if (!suffix) return;
+    findAndOpen(`${TICKET_PREFIX}${suffix}`);
+    setLookupCode("");
+  };
+
+  useEffect(() => {
+    if (!cameraOpen) {
+      cancelAnimationFrame(rafRef.current);
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      setScanning(false);
+      return;
+    }
+
+    let cancelled = false;
+    setCameraError(null);
+
+    const start = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+          audio: false,
+        });
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+        setScanning(true);
+        tick();
+      } catch (err) {
+        setCameraError(
+          err instanceof Error && err.name === "NotAllowedError"
+            ? "Necesitamos permiso de cámara para leer el QR."
+            : "No pudimos acceder a la cámara.",
+        );
+      }
+    };
+
+    const tick = () => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const qr = jsQR(frame.data, frame.width, frame.height);
+      if (qr?.data) findAndOpen(qr.data);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    start();
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafRef.current);
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
+  }, [cameraOpen, findAndOpen]);
 
   const confirmToggle = async () => {
     if (!confirmRow) return;
@@ -134,6 +276,34 @@ export function AdminMateriales() {
       <p className="mt-1 text-sm text-muted-foreground">
         Registra la entrega de materiales de cada asistente con pago aprobado ({rows.length} en total).
       </p>
+
+      <div className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="flex items-center gap-2 text-lg font-medium">
+            <QrCode className="size-5" /> Buscar entrada
+          </h2>
+          <Button variant="outline" size="sm" onClick={() => setCameraOpen(true)}>
+            Escanear QR
+          </Button>
+        </div>
+
+        <form onSubmit={submitLookup} className="mt-3 flex gap-2">
+          <div className="flex h-9 flex-1 items-center rounded-md border border-input bg-transparent px-3 shadow-sm focus-within:ring-1 focus-within:ring-ring">
+            <span className="text-sm text-muted-foreground select-none">{TICKET_PREFIX}</span>
+            <input
+              value={lookupCode}
+              maxLength={14}
+              onChange={(e) => handleLookupChange(e.target.value)}
+              placeholder="XXXX"
+              className="h-full flex-1 border-0 bg-transparent text-base uppercase outline-none placeholder:text-muted-foreground md:text-sm"
+            />
+          </div>
+          <Button type="submit">Buscar</Button>
+        </form>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Escanea el QR de la entrada o escribe el código para abrir directo la confirmación de entrega.
+        </p>
+      </div>
 
       <div className="relative mt-6 max-w-sm">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -250,19 +420,50 @@ export function AdminMateriales() {
         </div>
       )}
 
+      <Dialog open={cameraOpen} onClose={() => setCameraOpen(false)} title="Escanear entrada">
+        <div className="overflow-hidden rounded-lg border border-border bg-black">
+          <div className="relative aspect-video">
+            <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
+            <canvas ref={canvasRef} className="hidden" />
+            {scanning && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="size-40 max-w-[70%] rounded-lg border-4 border-accent/80" />
+              </div>
+            )}
+            {cameraError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-card px-6 text-center">
+                <CameraOff className="size-8 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">{cameraError}</p>
+              </div>
+            )}
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Apunta la cámara al QR de la entrada; al detectarlo se abre la ficha del asistente.
+        </p>
+      </Dialog>
+
       <Dialog
         open={confirmRow !== null}
         onClose={() => setConfirmRow(null)}
-        title={confirmRow?.materialsPickedUp ? "Deshacer entrega de materiales" : "Confirmar entrega de materiales"}
+        title={confirmRow?.materialsPickedUp ? "Ya está entregado" : "Confirmar entrega de materiales"}
+        tone={confirmRow?.materialsPickedUp ? "success" : "default"}
       >
         {confirmRow && (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              {confirmRow.materialsPickedUp
-                ? "¿Confirmas que quieres deshacer el registro de entrega de"
-                : "¿Confirmas que quieres marcar como entregados los materiales de"}{" "}
-              <strong className="uppercase">{confirmRow.fullName}</strong>?
-            </p>
+            {confirmRow.materialsPickedUp ? (
+              <div className="flex items-center gap-3 rounded-md border border-green-300 bg-green-100 p-3 text-green-900 dark:border-green-700 dark:bg-green-900/40 dark:text-green-100">
+                <CheckCircle2 className="size-6 shrink-0" />
+                <p className="text-sm font-medium">
+                  <span className="uppercase">{confirmRow.fullName}</span> ya recogió sus materiales.
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                ¿Confirmas que quieres marcar como entregados los materiales de{" "}
+                <strong className="uppercase">{confirmRow.fullName}</strong>?
+              </p>
+            )}
             <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
               <dt className="text-muted-foreground">Código</dt>
               <dd className="font-mono text-xs">{confirmRow.ticketCode}</dd>
@@ -289,10 +490,11 @@ export function AdminMateriales() {
             </dl>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setConfirmRow(null)} disabled={busy}>
-                Cancelar
+                {confirmRow.materialsPickedUp ? "Cerrar" : "Cancelar"}
               </Button>
               <Button
-                variant={confirmRow.materialsPickedUp ? "outline" : "default"}
+                variant={confirmRow.materialsPickedUp ? "destructive" : "default"}
+                className={confirmRow.materialsPickedUp ? "" : "bg-green-600 text-white shadow hover:bg-green-700"}
                 onClick={confirmToggle}
                 disabled={busy}
               >

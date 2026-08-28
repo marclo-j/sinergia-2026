@@ -3,9 +3,14 @@ import jsQR from "jsqr";
 import { toast } from "sonner";
 import { QrCode, ShieldCheck, CameraOff, CheckCircle2, XCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { checkinTicket, type AdminRegistrationRow } from "@/lib/api/client";
-import { Input } from "@/components/ui/input";
+import {
+  checkinTicket,
+  fetchAdminRegistrations,
+  type AdminRegistrationRow,
+  type RegistrationStatus,
+} from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 
 type ScanEntry = {
   id: string;
@@ -18,6 +23,18 @@ type ScanEntry = {
 // mismo código de nuevo, para no reenviar el mismo QR varias veces mientras
 // sigue frente a la cámara.
 const RESCAN_COOLDOWN_MS = 4000;
+
+const TICKET_PREFIX = "SIN26-";
+
+const formatDate = (value: string | null) =>
+  value ? new Date(value).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" }) : "—";
+
+const statusLabel: Record<RegistrationStatus, string> = {
+  pending: "Pago pendiente",
+  review: "Pago en revisión",
+  paid: "Pago confirmado",
+  rejected: "Pago rechazado",
+};
 
 export function AdminEscanear() {
   const { user, loading } = useAuth();
@@ -32,8 +49,17 @@ export function AdminEscanear() {
 
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
-  const [manualCode, setManualCode] = useState("");
+  const [code, setCode] = useState("");
   const [history, setHistory] = useState<ScanEntry[]>([]);
+  const [rows, setRows] = useState<AdminRegistrationRow[]>([]);
+  const [pendingCheckin, setPendingCheckin] = useState<AdminRegistrationRow | null>(null);
+  const [checkinBusy, setCheckinBusy] = useState(false);
+  // Espejo de `rows` en un ref: así openConfirm no cambia de identidad cada vez
+  // que la lista se actualiza, y no reinicia el efecto que maneja la cámara.
+  const rowsRef = useRef<AdminRegistrationRow[]>([]);
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
 
   const pushHistory = useCallback((ok: boolean, message: string) => {
     setHistory((prev) => [
@@ -42,32 +68,72 @@ export function AdminEscanear() {
     ].slice(0, 15));
   }, []);
 
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetchAdminRegistrations()
+      .then(({ registrations }) => setRows(registrations))
+      .catch(() => {
+        // silencioso: si falla, igual podemos validar directo contra el backend
+      });
+  }, [isAdmin]);
+
   const runCheckin = useCallback(
-    async (rawCode: string) => {
-      const code = rawCode.trim().toUpperCase();
-      if (!code) return;
-
-      const last = lastCodeRef.current;
-      if (last && last.code === code && Date.now() - last.at < RESCAN_COOLDOWN_MS) return;
-      if (busyRef.current) return;
-
-      busyRef.current = true;
-      lastCodeRef.current = { code, at: Date.now() };
+    async (ticket: string) => {
+      setCheckinBusy(true);
       try {
-        const { registration } = await checkinTicket(code);
-        const r: AdminRegistrationRow = registration;
-        toast.success(`Ingreso válido — ${r.fullName}`);
-        pushHistory(true, `${r.fullName} (${r.ticketCode})`);
+        const { registration } = await checkinTicket(ticket);
+        toast.success(`Ingreso válido — ${registration.fullName}`);
+        pushHistory(true, `${registration.fullName} (${registration.ticketCode})`);
+        setRows((prev) =>
+          prev.map((r) => (r.id === registration.id ? { ...r, checkedInAt: registration.checkedInAt } : r)),
+        );
       } catch (err) {
         const msg = err instanceof Error ? err.message : "No pudimos validar el ingreso";
         toast.error(msg);
-        pushHistory(false, `${code}: ${msg}`);
+        pushHistory(false, `${ticket}: ${msg}`);
       } finally {
+        setCheckinBusy(false);
         busyRef.current = false;
+        setPendingCheckin(null);
       }
     },
     [pushHistory],
   );
+
+  // Punto de entrada único para cámara y código manual: si conocemos a la
+  // persona la mostramos en un popup para confirmar antes de validar; si no,
+  // validamos directo contra el backend.
+  const openConfirm = useCallback(
+    (rawCode: string) => {
+      const ticket = rawCode.trim().toUpperCase();
+      if (!ticket) return;
+
+      const last = lastCodeRef.current;
+      if (last && last.code === ticket && Date.now() - last.at < RESCAN_COOLDOWN_MS) return;
+      if (busyRef.current) return;
+
+      lastCodeRef.current = { code: ticket, at: Date.now() };
+      busyRef.current = true;
+
+      const match = rowsRef.current.find((r) => r.ticketCode.toUpperCase() === ticket);
+      if (match) {
+        setPendingCheckin(match);
+      } else {
+        void runCheckin(ticket);
+      }
+    },
+    [runCheckin],
+  );
+
+  const confirmCheckin = () => {
+    if (!pendingCheckin) return;
+    void runCheckin(pendingCheckin.ticketCode);
+  };
+
+  const cancelCheckin = () => {
+    setPendingCheckin(null);
+    busyRef.current = false;
+  };
 
   useEffect(() => {
     if (!loading && !user) window.location.href = "/auth";
@@ -120,8 +186,8 @@ export function AdminEscanear() {
       }
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(frame.data, frame.width, frame.height);
-      if (code?.data) void runCheckin(code.data);
+      const qr = jsQR(frame.data, frame.width, frame.height);
+      if (qr?.data) openConfirm(qr.data);
       rafRef.current = requestAnimationFrame(tick);
     };
 
@@ -133,12 +199,19 @@ export function AdminEscanear() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     };
-  }, [isAdmin, runCheckin]);
+  }, [isAdmin, openConfirm]);
+
+  const handleCodeChange = (raw: string) => {
+    const upper = raw.toUpperCase();
+    setCode(upper.startsWith(TICKET_PREFIX) ? upper.slice(TICKET_PREFIX.length) : upper);
+  };
 
   const submitManual = (e: React.FormEvent) => {
     e.preventDefault();
-    void runCheckin(manualCode);
-    setManualCode("");
+    const suffix = code.trim();
+    if (!suffix) return;
+    openConfirm(`${TICKET_PREFIX}${suffix}`);
+    setCode("");
   };
 
   if (loading) {
@@ -161,7 +234,7 @@ export function AdminEscanear() {
         <QrCode className="size-7" /> Escanear entrada
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Apunta la cámara al código QR de la entrada para validar el ingreso automáticamente.
+        Apunta la cámara al código QR de la entrada para revisar su ficha y validar el ingreso.
       </p>
 
       <div className="mt-6 overflow-hidden rounded-lg border border-border bg-card">
@@ -183,12 +256,16 @@ export function AdminEscanear() {
       </div>
 
       <form onSubmit={submitManual} className="mt-4 flex gap-2">
-        <Input
-          value={manualCode}
-          maxLength={20}
-          onChange={(e) => setManualCode(e.target.value)}
-          placeholder="O ingresa el código manualmente: SIN26-XXXX"
-        />
+        <div className="flex h-9 flex-1 items-center rounded-md border border-input bg-transparent px-3 shadow-sm focus-within:ring-1 focus-within:ring-ring">
+          <span className="text-sm text-muted-foreground select-none">{TICKET_PREFIX}</span>
+          <input
+            value={code}
+            maxLength={14}
+            onChange={(e) => handleCodeChange(e.target.value)}
+            placeholder="XXXX"
+            className="h-full flex-1 border-0 bg-transparent text-base uppercase outline-none placeholder:text-muted-foreground md:text-sm"
+          />
+        </div>
         <Button type="submit">Validar</Button>
       </form>
 
@@ -217,6 +294,50 @@ export function AdminEscanear() {
           </ul>
         )}
       </div>
+
+      <Dialog open={pendingCheckin !== null} onClose={cancelCheckin} title="Confirmar validación de entrada">
+        {pendingCheckin && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              ¿Confirmas el ingreso de <strong className="uppercase">{pendingCheckin.fullName}</strong>?
+            </p>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+              <dt className="text-muted-foreground">Código</dt>
+              <dd className="font-mono text-xs">{pendingCheckin.ticketCode}</dd>
+              <dt className="text-muted-foreground">Asistente</dt>
+              <dd className="uppercase">{pendingCheckin.fullName}</dd>
+              <dt className="text-muted-foreground">Correo</dt>
+              <dd>{pendingCheckin.email}</dd>
+              <dt className="text-muted-foreground">Teléfono</dt>
+              <dd>{pendingCheckin.phone}</dd>
+              <dt className="text-muted-foreground">Documento</dt>
+              <dd className="uppercase">
+                {pendingCheckin.tipoDocumento} {pendingCheckin.numeroDocumento}
+              </dd>
+              <dt className="text-muted-foreground">Estado</dt>
+              <dd>{statusLabel[pendingCheckin.status]}</dd>
+            </dl>
+            {pendingCheckin.status !== "paid" && (
+              <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                Esta inscripción no tiene el pago confirmado; el backend rechazará la validación.
+              </p>
+            )}
+            {pendingCheckin.checkedInAt && (
+              <p className="rounded-md border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+                Ya se validó antes, el {formatDate(pendingCheckin.checkedInAt)}.
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={cancelCheckin} disabled={checkinBusy}>
+                Cancelar
+              </Button>
+              <Button onClick={confirmCheckin} disabled={checkinBusy}>
+                {checkinBusy ? "Validando…" : "VALIDAR INGRESO"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </main>
   );
 }
