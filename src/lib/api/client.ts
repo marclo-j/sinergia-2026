@@ -3,6 +3,11 @@
 const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://localhost:4000/api";
 const TOKEN_KEY = "sinergia_token";
 
+// Cada isla de React monta su propia instancia de useAuth(); este evento las
+// mantiene sincronizadas entre sí (ej. registrarse en InscripcionForm debe
+// actualizar el navbar de SiteHeader sin recargar la página).
+export const AUTH_CHANGED_EVENT = "sinergia:auth-changed";
+
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
   return window.localStorage.getItem(TOKEN_KEY);
@@ -10,10 +15,12 @@ export function getToken(): string | null {
 
 export function setToken(token: string) {
   window.localStorage.setItem(TOKEN_KEY, token);
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
 
 export function clearToken() {
   window.localStorage.removeItem(TOKEN_KEY);
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
 
 export type PublicUser = {

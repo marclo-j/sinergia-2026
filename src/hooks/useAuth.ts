@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { clearToken, fetchMe, getToken, type PublicRegistration, type PublicUser } from "@/lib/api/client";
+import {
+  AUTH_CHANGED_EVENT,
+  clearToken,
+  fetchMe,
+  getToken,
+  type PublicRegistration,
+  type PublicUser,
+} from "@/lib/api/client";
 
 export function useAuth() {
   const [user, setUser] = useState<PublicUser | null>(null);
@@ -28,6 +35,8 @@ export function useAuth() {
 
   useEffect(() => {
     refresh();
+    window.addEventListener(AUTH_CHANGED_EVENT, refresh);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, refresh);
   }, [refresh]);
 
   const logout = useCallback(() => {
