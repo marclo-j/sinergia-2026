@@ -3,8 +3,7 @@ import Layout from "@/layouts/Layout.astro";
 import { SiteHeader } from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter.astro";
 import { InscripcionForm } from "@/components/islands/InscripcionForm";
-
-const PRICE = 10;
+import { PRICE } from "@/lib/constants";
 ---
 
 <Layout
@@ -13,20 +12,18 @@ const PRICE = 10;
   ogTitle="Inscripción | Sinergia Vol. II"
   ogDescription="Preventa S/ 10. Pago por Yape, Plin o transferencia."
 >
-	<div class="min-h-screen bg-background">
-		<SiteHeader client:load currentPath="/inscripcion" />
+	<SiteHeader client:load currentPath="/inscripcion" />
 
-		<section class="grain-overlay relative surface-heat">
-			<div class="relative z-10 mx-auto max-w-3xl px-4 py-14">
-				<h1 class="font-display text-4xl text-primary-foreground md:text-5xl">Inscripción</h1>
-				<p class="mt-3 text-primary-foreground/90">
-					Preventa S/ {PRICE}.00 — incluye acceso a los 3 días y el kit del asistente.
-				</p>
-			</div>
-		</section>
+	<section class="grain-overlay relative surface-heat">
+		<div class="relative z-10 mx-auto max-w-3xl px-4 py-14">
+			<h1 class="font-display text-4xl text-primary-foreground md:text-5xl">Inscripción</h1>
+			<p class="mt-3 text-primary-foreground/90">
+				Preventa S/ {PRICE}.00 — incluye acceso a los 3 días y el kit del asistente.
+			</p>
+		</div>
+	</section>
 
-		<InscripcionForm client:load />
+	<InscripcionForm client:load />
 
-		<SiteFooter />
-	</div>
+	<SiteFooter />
 </Layout>

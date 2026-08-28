@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { QrCode, ShieldCheck } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+import QrCode from "lucide-react/dist/esm/icons/qr-code";
+import ShieldCheck from "lucide-react/dist/esm/icons/shield-check";
+import { getSupabase } from "@/lib/supabase/client";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,7 @@ export function AdminPanel() {
 
   const reload = useCallback(async () => {
     if (!isAdmin) return;
-    const { data, error } = await supabase
+    const { data, error } = await (await getSupabase())
       .from("registrations")
       .select("*")
       .order("created_at", { ascending: false });
@@ -44,7 +45,7 @@ export function AdminPanel() {
   }, [reload]);
 
   const setStatus = async (id: string, status: Row["status"]) => {
-    const { error } = await supabase.from("registrations").update({ status }).eq("id", id);
+    const { error } = await (await getSupabase()).from("registrations").update({ status }).eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
@@ -54,7 +55,7 @@ export function AdminPanel() {
   };
 
   const toggleMaterials = async (row: Row) => {
-    const { error } = await supabase
+    const { error } = await (await getSupabase())
       .from("registrations")
       .update({
         materials_picked_up: !row.materials_picked_up,
@@ -71,7 +72,7 @@ export function AdminPanel() {
   const validate = async () => {
     const ticket = code.trim().toUpperCase();
     if (!ticket) return;
-    const { data, error } = await supabase
+    const { data, error } = await (await getSupabase())
       .from("registrations")
       .select("*")
       .eq("ticket_code", ticket)
@@ -89,7 +90,7 @@ export function AdminPanel() {
       toast.error(`${row.full_name}: pago no confirmado`);
       return;
     }
-    await supabase
+    await (await getSupabase())
       .from("registrations")
       .update({ checked_in_at: new Date().toISOString() })
       .eq("id", row.id);
@@ -99,7 +100,7 @@ export function AdminPanel() {
   };
 
   const openReceipt = async (path: string) => {
-    const { data, error } = await supabase.storage.from("receipts").createSignedUrl(path, 60);
+    const { data, error } = await (await getSupabase()).storage.from("receipts").createSignedUrl(path, 60);
     if (error || !data) {
       toast.error("No pudimos abrir el comprobante");
       return;

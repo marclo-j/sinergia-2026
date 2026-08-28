@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ShoppingBag, Trash2 } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+import ShoppingBag from "lucide-react/dist/esm/icons/shopping-bag";
+import Trash2 from "lucide-react/dist/esm/icons/trash-2";
+import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
@@ -26,7 +27,7 @@ export function MerchStore() {
   useEffect(() => {
     let active = true;
     (async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (await getSupabase())
         .from("merch_products")
         .select("*")
         .eq("active", true)
@@ -63,7 +64,7 @@ export function MerchStore() {
     if (cart.length === 0) return;
     setBusy(true);
     try {
-      const { data: order, error } = await supabase
+      const { data: order, error } = await (await getSupabase())
         .from("merch_orders")
         .insert({ user_id: user.id, total })
         .select("id")
@@ -77,7 +78,7 @@ export function MerchStore() {
         size: l.size,
         unit_price: l.product.price,
       }));
-      const { error: itemsError } = await supabase.from("merch_order_items").insert(items);
+      const { error: itemsError } = await (await getSupabase()).from("merch_order_items").insert(items);
       if (itemsError) throw itemsError;
       setCart([]);
       toast.success("Pedido reservado. Paga por Yape/Plin y recógelo en el evento.");

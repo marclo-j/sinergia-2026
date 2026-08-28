@@ -1,46 +1,83 @@
-# Astro Starter Kit: Basics
+# Sinergia Vol. II — Sitio web de la conferencia
 
-```sh
-npm create astro@latest -- --template basics
+Sitio web para la conferencia Sinergia Vol. II (30-31 oct, 1 nov 2026). Construido con Astro 7 + React 19 islands + Tailwind 4 + Supabase.
+
+## Comandos
+
+| Comando | Acción |
+|---------|--------|
+| `npm run dev` | Servidor de desarrollo en `localhost:4321` |
+| `npm run build` | Build de producción a `./dist/` |
+| `npm run preview` | Preview del build local |
+
+## Estructura
+
+```
+src/
+├── assets/              # Imágenes optimizadas (astro:assets)
+│   ├── hero/
+│   ├── countdown/
+│   ├── pilares/
+│   └── sinergia/
+├── components/
+│   ├── islands/         # Componentes React (client-side)
+│   │   ├── AdminPanel.tsx
+│   │   ├── AuthForm.tsx
+│   │   ├── Countdown.tsx
+│   │   ├── InscripcionForm.tsx
+│   │   ├── MerchStore.tsx
+│   │   ├── MiEntrada.tsx
+│   │   └── ProgramaTimeline.tsx
+│   ├── sections/        # Secciones reutilizables de Astro
+│   │   ├── Hero.astro
+│   │   ├── CountdownSection.astro
+│   │   ├── QueEsSinergia.astro
+│   │   ├── TresDias.astro
+│   │   ├── Pilares.astro
+│   │   └── CtaSection.astro
+│   ├── ui/              # Componentes base (patrón shadcn)
+│   │   ├── button.tsx
+│   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   ├── textarea.tsx
+│   │   └── sonner.tsx
+│   ├── SiteHeader.tsx
+│   └── SiteFooter.astro
+├── hooks/
+│   └── useAuth.ts
+├── layouts/
+│   └── Layout.astro
+├── lib/
+│   ├── constants.ts
+│   ├── utils.ts
+│   └── supabase/
+│       ├── client.ts
+│       └── types.ts
+├── pages/
+│   ├── index.astro
+│   ├── admin.astro
+│   ├── auth.astro
+│   ├── inscripcion.astro
+│   ├── merch.astro
+│   ├── mi-entrada.astro
+│   └── programa.astro
+└── styles/
+    └── global.css
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Stack
 
-## 🚀 Project Structure
+- **Framework:** Astro 7 con React islands
+- **Estilos:** Tailwind CSS 4 + design tokens (global.css)
+- **UI:** Radix UI + class-variance-authority (patrón shadcn)
+- **Backend:** Supabase (auth + base de datos + storage)
+- **Formularios:** Zod (validación)
+- **Notificaciones:** Sonner (toasts)
 
-Inside of your Astro project, you'll see the following folders and files:
+## Variables de entorno
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
 ```
-
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+PUBLIC_SUPABASE_URL=
+PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+PUBLIC_SUPABASE_PROJECT_ID=
+```

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const EVENT_START = new Date("2026-10-30T16:00:00-05:00");
+import { EVENT_START } from "@/lib/constants";
 
 function useCountdown() {
   const [left, setLeft] = useState({ d: 0, h: 0, m: 0, s: 0 });
@@ -34,9 +33,9 @@ export function Countdown() {
       ].map((b) => (
         <div
           key={b.l}
-          className="min-w-20 bg-[#12406F] px-4 py-3 text-center rounded-2xl"
+          className="min-w-20 bg-electric/80 px-4 py-3 text-center rounded-2xl"
         >
-          <p className="font-bold text-[#ffbb5d] text-4xl md:text-5xl">
+          <p className="font-bold text-accent text-4xl md:text-5xl">
             {String(b.v).padStart(2, "0")}
           </p>
           <p className="text-xs tracking-[0.15em] uppercase">{b.l}</p>

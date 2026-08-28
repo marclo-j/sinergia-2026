@@ -1,6 +1,6 @@
-import { Menu } from "lucide-react";
+import Menu from "lucide-react/dist/esm/icons/menu";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
@@ -16,7 +16,8 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
   const [open, setOpen] = useState(false);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const client = await getSupabase();
+    await client.auth.signOut();
     window.location.href = "/";
   };
 

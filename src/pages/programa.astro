@@ -11,26 +11,24 @@ import { ProgramaTimeline } from "@/components/islands/ProgramaTimeline";
   ogTitle="Programa | Sinergia Vol. II"
   ogDescription="Horarios y actividades de los tres días de la conferencia."
 >
-	<div class="min-h-screen bg-background">
-		<SiteHeader client:load currentPath="/programa" />
+	<SiteHeader client:load currentPath="/programa" />
 
-		<section class="grain-overlay relative surface-heat">
-			<div class="relative z-10 mx-auto max-w-4xl px-4 py-16">
-				<p class="font-display text-xs tracking-[0.3em] text-primary-foreground/80">
-					30 · 31 Oct · 01 Nov 2026
-				</p>
-				<h1 class="mt-3 font-display text-4xl leading-none text-primary-foreground md:text-6xl">
-					Programa<br />de los 3 días
-				</h1>
-				<p class="mt-4 max-w-xl text-primary-foreground/90">
-					Cada bloque está pensado para que aprendas, adores y conectes. Los horarios pueden
-					ajustarse ligeramente el día del evento.
-				</p>
-			</div>
-		</section>
+	<section class="grain-overlay relative surface-heat">
+		<div class="relative z-10 mx-auto max-w-4xl px-4 py-16">
+			<p class="font-display text-xs tracking-[0.3em] text-primary-foreground/80">
+				30 · 31 Oct · 01 Nov 2026
+			</p>
+			<h1 class="mt-3 font-display text-4xl leading-none text-primary-foreground md:text-6xl">
+				Programa<br />de los 3 días
+			</h1>
+			<p class="mt-4 max-w-xl text-primary-foreground/90">
+				Cada bloque está pensado para que aprendas, adores y conectes. Los horarios pueden
+				ajustarse ligeramente el día del evento.
+			</p>
+		</div>
+	</section>
 
-		<ProgramaTimeline client:visible />
+	<ProgramaTimeline client:visible />
 
-		<SiteFooter />
-	</div>
+	<SiteFooter />
 </Layout>

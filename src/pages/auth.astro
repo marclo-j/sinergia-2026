@@ -10,8 +10,6 @@ import { AuthForm } from "@/components/islands/AuthForm";
   ogTitle="Ingresar | Sinergia Vol. II"
   ogDescription="Accede a tu inscripción y tu entrada digital."
 >
-	<div class="min-h-screen bg-background">
-		<SiteHeader client:load currentPath="/auth" />
-		<AuthForm client:load />
-	</div>
+	<SiteHeader client:load currentPath="/auth" />
+	<AuthForm client:load />
 </Layout>

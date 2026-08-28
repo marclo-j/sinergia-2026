@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Check, CreditCard, Upload, User } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+import Check from "lucide-react/dist/esm/icons/check";
+import CreditCard from "lucide-react/dist/esm/icons/credit-card";
+import Upload from "lucide-react/dist/esm/icons/upload";
+import User from "lucide-react/dist/esm/icons/user";
+import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-const PRICE = 10;
+import { PRICE } from "@/lib/constants";
 
 const dataSchema = z.object({
   full_name: z.string().trim().min(3, "Escribe tu nombre completo").max(120),
@@ -69,7 +71,7 @@ export function InscripcionForm() {
     if (!user) return;
     let active = true;
     (async () => {
-      const { data } = await supabase
+      const { data } = await (await getSupabase())
         .from("registrations")
         .select("*")
         .eq("user_id", user.id)
@@ -113,7 +115,7 @@ export function InscripcionForm() {
       church: parsed.data.church ?? null,
       amount: PRICE,
     };
-    const { data, error } = await supabase
+    const { data, error } = await (await getSupabase())
       .from("registrations")
       .insert(payload)
       .select("*")
@@ -123,7 +125,7 @@ export function InscripcionForm() {
       toast.error(error.message);
       return;
     }
-    await supabase
+    await (await getSupabase())
       .from("profiles")
       .update({ full_name: parsed.data.full_name, phone: parsed.data.phone, church: parsed.data.church ?? null })
       .eq("id", user.id);
@@ -145,13 +147,13 @@ export function InscripcionForm() {
         if (file.size > 10 * 1024 * 1024) throw new Error("El archivo supera los 10MB");
         const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
         const path = `${user.id}/comprobante-${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("receipts").upload(path, file, {
+        const { error: upErr } = await (await getSupabase()).storage.from("receipts").upload(path, file, {
           upsert: true,
         });
         if (upErr) throw upErr;
         receiptPath = path;
       }
-      const { data, error } = await supabase
+      const { data, error } = await (await getSupabase())
         .from("registrations")
         .update({
           payment_method: method,

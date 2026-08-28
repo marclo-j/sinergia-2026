@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { Clock, MapPin, Mic } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+import Clock from "lucide-react/dist/esm/icons/clock";
+import MapPin from "lucide-react/dist/esm/icons/map-pin";
+import Mic from "lucide-react/dist/esm/icons/mic";
+import { getSupabase } from "@/lib/supabase/client";
 
 type Item = {
   id: string;
@@ -21,7 +23,7 @@ export function ProgramaTimeline() {
   useEffect(() => {
     let active = true;
     (async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (await getSupabase())
         .from("schedule_items")
         .select("*")
         .order("day_number")

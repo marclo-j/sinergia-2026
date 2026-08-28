@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { BadgeCheck, Clock3, PackageCheck, XCircle } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+import BadgeCheck from "lucide-react/dist/esm/icons/badge-check";
+import Clock3 from "lucide-react/dist/esm/icons/clock-3";
+import PackageCheck from "lucide-react/dist/esm/icons/package-check";
+import XCircle from "lucide-react/dist/esm/icons/x-circle";
+import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 type Registration = {
@@ -36,7 +39,7 @@ export function MiEntrada() {
     if (!user) return;
     let active = true;
     (async () => {
-      const { data } = await supabase
+      const { data } = await (await getSupabase())
         .from("registrations")
         .select("*")
         .eq("user_id", user.id)
@@ -61,7 +64,7 @@ export function MiEntrada() {
 
   const markMaterials = async () => {
     if (!reg) return;
-    const { data, error } = await supabase
+    const { data, error } = await (await getSupabase())
       .from("registrations")
       .update({ materials_picked_up: true, materials_picked_up_at: new Date().toISOString() })
       .eq("id", reg.id)

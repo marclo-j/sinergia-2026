@@ -11,8 +11,6 @@ import { AdminPanel } from "@/components/islands/AdminPanel";
   ogDescription="Validación de pagos y control de acceso."
   noindex
 >
-	<div class="min-h-screen bg-background">
-		<SiteHeader client:load currentPath="/admin" />
-		<AdminPanel client:load />
-	</div>
+	<SiteHeader client:load currentPath="/admin" />
+	<AdminPanel client:load />
 </Layout>

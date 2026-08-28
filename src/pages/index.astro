@@ -1,24 +1,17 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { getImage } from "astro:assets";
+import heroBg from "@/assets/hero/bg.webp";
 import { SiteHeader } from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter.astro";
-import { Countdown } from "@/components/islands/Countdown";
-import { ArrowRight } from "lucide-react";
-import texture from "@/assets/texture-warm.jpg";
-import sinergia from "@/public/hero/sinergia.jpg";
+import Hero from "@/components/sections/Hero.astro";
+import CountdownSection from "@/components/sections/CountdownSection.astro";
+import QueEsSinergia from "@/components/sections/QueEsSinergia.astro";
+import TresDias from "@/components/sections/TresDias.astro";
+import Pilares from "@/components/sections/Pilares.astro";
+import CtaSection from "@/components/sections/CtaSection.astro";
 
-const pillars = [
-  { n: "01", title: "Adoración", text: "No se trata solamente de música. Se trata de una vida rendida a Dios." },
-  { n: "02", title: "Generaciones", text: "Pasado, presente y futuro unidos para glorificar a Jesús." },
-  { n: "03", title: "Conexión", text: "Personas, ministerios y talentos que se unen en un mismo propósito." },
-  { n: "04", title: "Misión", text: "Adorar a Dios y llevar su nombre más allá de nuestras paredes." },
-];
-
-const days = [
-  { n: "30", month: "Octubre", label: "Día 1", text: "Una mirada al pasado. Las raíces de nuestra adoración." },
-  { n: "31", month: "Octubre", label: "Día 2", text: "Una generación que adora. Una iglesia que permanece." },
-  { n: "01", month: "Noviembre", label: "Día 3", text: "Miramos hacia adelante. Adoramos con propósito." },
-];
+const ogImage = await getImage({ src: heroBg, width: 1200, format: "webp" });
 ---
 
 <Layout
@@ -26,176 +19,14 @@ const days = [
   description="Conferencia Sinergia Vol. II: 30 y 31 de octubre y 1 de noviembre. Inscríbete, paga tu entrada y recibe tu QR de acceso."
   ogTitle="Sinergia Vol. II — A través del tiempo"
   ogDescription="Tres días de adoración, talleres y conexión. Preventa S/ 10."
+  preloadImage={ogImage.src}
 >
-	<div class="bg-background">
-		<SiteHeader client:load currentPath="/" />
-
-		<!-- HERO -->
-		<section class="grain-overlay relative h-[985px]">
-			<img
-				src="/hero/bg.png"
-				alt=""
-				width={1458}
-				height={800}
-				class="object-cover absolute inset-0 z-[1] h-full w-full"
-			/>
-			<div class="absolute inset-0 surface-heat opacity-80"></div>
-			<img src="/hero/sinergia.jpg" alt="" class="absolute inset-0 z-[5] mx-auto my-auto min-h-[870px] w-auto object-contain" />
-			<div class="absolute inset-0 bg-black/20 z-[8]"></div>
-
-			<div class="relative z-10 flex min-h-[calc(985px-10rem)] flex-col justify-end gap-10 pl-4 pr-4 pt-10 pb-4 md:pl-10 md:pr-10 md:pt-16 md:pb-6">
-				<div class="flex flex-col gap-6">
-					<h1 class="font-bold text-5xl leading-[0.9] text-primary-foreground md:text-7xl lg:text-8xl">
-						A través<br />del tiempo
-					</h1>
-					<p class="max-w-md text-3xl font-medium text-primary-foreground uppercase">
-						Todo cambia, Él permanece
-					</p>
-					<a
-						href="/inscripcion"
-						class="uppercase inline-flex items-center gap-4 px-5 py-4 font-display text-2xl tracking-wide bg-[#102a49] transition-transform hover:-translate-y-0.5 self-start text-white"
-					>
-						Quiero ser parte <ArrowRight className="size-8" />
-					</a>
-					<p class="font-semibold text-2xl text-primary-foreground uppercase">
-						¡Preventa con cupos limitados!
-					</p>
-				</div>
-			</div>
-
-			<div class="absolute top-16 md:top-24 right-4 z-20 flex flex-col items-end gap-10 md:gap-16 font-nav text-primary-foreground md:right-10">
-				{/* Octubre — compartido entre 30 y 31 */}
-				<div class="flex items-end gap-3">
-					<div class="flex flex-col gap-5 items-end">
-						<span class="font-bold text-6xl md:text-8xl leading-none">30</span>
-						<span class="font-bold text-6xl md:text-8xl leading-none">31</span>
-					</div>
-					<span class="font-semibold vertical-text-cc text-xl md:text-3xl tracking-[0.25em] uppercase">Octubre</span>
-				</div>
-				{/* Noviembre — solo 01 */}
-				<div class="flex gap-2">
-					<span class="font-bold text-6xl md:text-8xl leading-none">01</span>
-					<span class="font-semibold vertical-text-cc text-xl md:text-3xl tracking-[0.25em] uppercase">Noviembre</span>
-				</div>
-			</div>
-		</section>
-
-		<!-- COUNTDOWN -->
-		<section class="relative bg-electric text-electric-foreground overflow-hidden">
-			<img src="/countdown/bg_reloj.png" alt="" class="absolute inset-0 z-[1] h-full w-full object-cover" />
-			<div class="absolute inset-0 z-[2] bg-electric/30"></div>
-			<div class="relative z-10 mx-auto flex max-w-6xl flex-col flex-wrap items-center gap-6 px-4 py-8 lg:flex-row">
-				<p class="font-medium text-3xl">FALTAN:</p>
-				<Countdown client:load />
-				<p class="font-medium text-xl tracking-[0.2em] lg:ml-auto">
-					30 · 31 Oct · 01 Nov
-				</p>
-			</div>
-		</section>
-
-		<!-- QUÉ ES SINERGIA -->
-		<section class="relative bg-[url('/sinergia/queessinergia.png')] bg-cover bg-center">
-			<div class="relative z-10 mx-auto grid max-w-6xl gap-6 px-4 py-16 md:grid-cols-[auto_1fr_auto]">
-				<div class="print-block hidden items-center justify-center bg-sand px-4 py-6 md:flex">
-					<h2 class="vertical-text-cc font-extrabold text-4xl text-kraft-foreground">¿Qué es Sinergia?</h2>
-				</div>
-				<div class="print-block bg-sand/60 p-6 md:p-8">
-					<h2 class="font-semibold text-lg md:hidden">
-						¿Qué es Sinergia?
-					</h2>
-				<span class="print-block flex items-center justify-center bg-sand px-6 py-3">
-					<p class="font-bold text-xl tracking-[0.1em] text-kraft-foreground">
-						Vol. II — A través del tiempo
-					</p>
-				</span>
-					<p class="mt-6 text-xl text-kraft-foreground">
-						Una conferencia que nos invita a mirar más allá de las tendencias, los estilos y las
-						generaciones. La adoración cambia de formas, pero su esencia permanece:{" "}
-						<strong class="text-primary">Jesús sigue siendo el centro.</strong>
-					</p>
-					<p class="mt-5 text-xl text-kraft-foreground">
-						Durante tres días nos reuniremos para aprender, adorar, conectar y recordar que cuando
-						diferentes generaciones, talentos y corazones se unen con un mismo propósito, ocurre
-						algo poderoso.
-					</p>
-				</div>
-				<div class="print-block hidden items-center justify-center bg-sand px-4 py-6 md:flex">
-					<p class="vertical-text-cc font-extrabold text-4xl text-kraft-foreground">2026</p>
-				</div>
-		</div>
-	</section>
-
-		<!-- DÍAS -->
-		<section class="relative bg-[url('/hero/bg.png')] bg-cover bg-center">
-			<div class="relative z-10 mx-auto max-w-7xl px-4 py-16">
-				<div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-					<h2 class="font-extrabold text-4xl leading-none text-primary-foreground md:text-6xl">
-						3 días que<br />nos inspiran
-					</h2>
-					<p class="max-w-sm text-primary-foreground/90 md:text-right text-xl font-semibold">
-						→ Cada día nos recuerda que el Señor fue, es y seguirá siendo fiel
-					</p>
-				</div>
-
-				<div class="mt-10 lg:grid gap-14 space-y-3 lg:space-y-0 lg:grid-cols-3">
-					{days.map((d) => (
-						<article class="flex lg:size-[360px] flex-col bg-[#102a49]/70 p-6">
-							<p class="font-bold text-4xl text-[#ffbb5d]">{d.label}</p>
-							<p class="mt-2 text-lg text-background/90">{d.text}</p>
-							<div class="mt-auto flex items-end justify-end gap-2 pt-8 text-background">
-								<span class="font-bold text-8xl">{d.n}</span>
-								<span class="vertical-text-cc pb-1 font-medium text-3xl uppercase">{d.month}</span>
-							</div>
-						</article>
-					))}
-				</div>
-
-				<!-- <a
-					href="/programa"
-					class="mt-8 inline-flex items-center gap-2 font-semibold text-xl text-primary-foreground underline underline-offset-4"
-				>
-					Ver el programa completo <ArrowRight className="size-4" />
-				</a> -->
-			</div>
-		</section>
-
-		<!-- PILARES -->
-		<section class="relative bg-[url('/pilares/pilares.png')] bg-cover bg-center">
-			<div class="mx-auto grid max-w-7xl gap-7 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
-				{pillars.map((p) => (
-					<article class="bg-[#f8af48]/80 p-5">
-						<p class="text-xl font-semibold text-white">{p.n}</p>
-						<h3 class="mt-2 text-3xl font-bold text-primary">{p.title}</h3>
-						<p class="mt-2 text-lg font-medium text-primary">{p.text}</p>
-					</article>
-				))}
-			</div>
-		</section>
-
-		<!-- CTA -->
-		<section class="relative bg-[url('/hero/bg.png')] bg-cover bg-center">
-			
-			<div class="relative z-10 mx-auto max-w-7xl px-4 py-20">
-				<h2 class="font-bold text-4xl leading-none text-primary-foreground md:text-6xl">
-					¿Estás listo para<br />ser parte?
-				</h2>
-				<div class="mt-8 flex flex-wrap gap-3">
-					<a
-						href="/inscripcion"
-						class="inline-flex items-center gap-2 bg-ink px-6 py-3 font-display text-sm text-background"
-					>
-						Inscribirme ahora <ArrowRight className="size-4" />
-					</a>
-					<!-- <a
-						href="/merch"
-						class="inline-flex items-center gap-2 border-2 border-primary-foreground px-6 py-3 font-display text-sm text-primary-foreground"
-					>
-						Ver el merch
-					</a> -->
-				</div>
-			</div>
-		</section>
-
-		<SiteFooter />
-	</div>
+  <SiteHeader client:load currentPath="/" />
+  <Hero />
+  <CountdownSection />
+  <QueEsSinergia />
+  <TresDias />
+  <Pilares />
+  <CtaSection />
+  <SiteFooter />
 </Layout>

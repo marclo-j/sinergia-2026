@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase/client";
+import { getSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,7 @@ export function AuthForm() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { error } = await (await getSupabase()).auth.signUp({
           email: parsed.data.email,
           password: parsed.data.password,
           options: {
@@ -51,7 +51,7 @@ export function AuthForm() {
         if (error) throw error;
         toast.success("Cuenta creada. ¡Continúa con tu inscripción!");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error } = await (await getSupabase()).auth.signInWithPassword({
           email: parsed.data.email,
           password: parsed.data.password,
         });

@@ -1,28 +1,23 @@
-import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
-const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env
-  .PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+let _client: SupabaseClient<Database> | null = null;
 
-export const supabase =
-  SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
-    ? createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true },
-      })
-    : createClient("http://localhost", "FAKE_KEY", {
-        auth: { persistSession: false },
-      });
+export async function getSupabase(): Promise<SupabaseClient<Database>> {
+  if (_client) return _client;
 
-// if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-//   throw new Error(
-//     "Faltan las variables de entorno PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_PUBLISHABLE_KEY (.env)",
-//   );
-// }
+  const { createClient } = await import("@supabase/supabase-js");
+  const url = import.meta.env.PUBLIC_SUPABASE_URL;
+  const key = import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-// export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-//   auth: {
-//     persistSession: true,
-//     autoRefreshToken: true,
-//   },
-// });
+  if (url && key) {
+    _client = createClient<Database>(url, key, {
+      auth: { persistSession: true, autoRefreshToken: true },
+    });
+  } else {
+    _client = createClient<Database>("http://localhost", "FAKE_KEY", {
+      auth: { persistSession: false },
+    });
+  }
+  return _client;
+}
