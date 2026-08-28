@@ -27,7 +27,9 @@ function NavLink({
   return (
     <span
       className={
-        isComingSoon ? "relative inline-flex flex-col items-center" : "contents"
+        isComingSoon
+          ? `relative inline-flex items-center ${mobile ? "flex-row gap-2" : "flex-col"}`
+          : "contents"
       }
     >
       {isComingSoon ? (
@@ -54,7 +56,7 @@ function NavLink({
       {isComingSoon && (
         <span
           aria-hidden="true"
-          className={`pointer-events-none -mt-0.5 -rotate-6 whitespace-nowrap rounded-[5px] border-2 border-black bg-red-500 px-1.5 py-0.5 font-nav text-[8px] font-extrabold leading-none text-white shadow-[1px_2px_0_#000] ${mobile ? "text-[7px]" : "md:text-[9px]"}`}
+          className={`pointer-events-none -mt-0.5 -rotate-6 whitespace-nowrap rounded-[5px] border-2 border-black bg-red-500 px-1.5 py-0.5 font-nav text-[8px] font-extrabold leading-none text-white shadow-[1px_2px_0_#000] ${mobile ? "mt-0 text-[7px]" : "md:text-[9px]"}`}
         >
           PRÓXIMAMENTE
         </span>
@@ -78,16 +80,28 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
 
   return (
     <header className="sticky top-0 z-50 bg-primary text-primary-foreground">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-9 md:px-4 py-5 md:justify-center md:py-7">
-        <a href="/" className="md:hidden" aria-label="Ir al inicio">
+      <div className="relative mx-auto flex w-full items-center justify-between gap-4 px-9 py-5">
+        <a href="/" className="xl:hidden" aria-label="Ir al inicio">
           <img
             src={logoSinergia.src}
             alt="Sinergia"
-            className="h-5 w-auto max-w-full scale-[2.1] object-contain"
+            className="h-5 w-auto max-w-full scale-[2.5] object-contain"
           />
         </a>
 
-        <nav className="font-nav hidden w-full items-center justify-center gap-16 text-center text-2xl font-medium md:flex">
+        <a
+          href="/"
+          className="hidden items-center xl:flex"
+          aria-label="Ir al inicio"
+        >
+          <img
+            src={logoSinergia.src}
+            alt="Sinergia"
+            className="h-5 w-auto max-w-full scale-[2.5] object-contain"
+          />
+        </a>
+
+        <nav className="font-nav hidden items-center justify-end gap-16 text-center text-2xl font-medium xl:ml-auto xl:flex">
           {links.map((l) => (
             <NavLink key={l.to} link={l} />
           ))}
@@ -119,7 +133,7 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
           aria-expanded={open}
           aria-controls="mobile-menu"
           onClick={() => setOpen((v) => !v)}
-          className="flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-md md:hidden"
+          className="flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-md xl:hidden"
         >
           <span
             aria-hidden="true"
@@ -139,7 +153,7 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
       {open && (
         <nav
           id="mobile-menu"
-          className="font-nav flex flex-col items-center gap-1 border-t border-primary-foreground/20 px-4 pb-4 text-center text-sm md:hidden"
+          className="font-nav flex flex-col items-center gap-1 border-t border-primary-foreground/20 px-4 pb-4 text-center text-sm xl:hidden"
         >
           {links.map((l) => (
             <NavLink
