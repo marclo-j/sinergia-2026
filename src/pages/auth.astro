@@ -5,13 +5,22 @@ import { AuthForm } from "@/components/islands/AuthForm";
 ---
 
 <Layout
-  title="Ingresar o crear cuenta | Sinergia Vol. II"
-  description="Crea tu cuenta de Sinergia Vol. II para inscribirte, pagar tu entrada y acceder a tu código QR."
-  ogTitle="Ingresar | Sinergia Vol. II"
-  ogDescription="Accede a tu inscripción y tu entrada digital."
+  title="Login | Sinergia Vol. II"
+  description="Inicia sesión en Sinergia Vol. II para ver tu inscripción, pagar tu entrada y acceder a tu código QR."
+  ogTitle="Login | Sinergia Vol. II"
+  ogDescription="Inicia sesión para ver tu inscripción y tu entrada digital."
 >
 	<div class="min-h-screen bg-background">
 		<SiteHeader client:load currentPath="/auth" />
+
+		<section class="grain-overlay relative surface-flyer">
+			<div class="relative z-10 mx-auto max-w-3xl px-4 py-10 text-center">
+				<p class="font-pixel text-[10px] tracking-[0.3em] text-primary-foreground/90">
+					30 · 31 OCT · 01 NOV 2026 — IACYM COMAS
+				</p>
+			</div>
+		</section>
+
 		<AuthForm client:load />
 	</div>
 </Layout>

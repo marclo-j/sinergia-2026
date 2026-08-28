@@ -1,0 +1,16 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { AdminNav } from "@/components/AdminNav";
+import { AdminEntradas } from "@/components/islands/AdminEntradas";
+---
+
+<Layout
+  title="Entradas | Panel admin | Sinergia Vol. II"
+  description="Valida ingresos por código QR y revisa el estado de pago de cada inscripción."
+  noindex
+>
+	<div class="admin-scope min-h-screen bg-background">
+		<AdminNav client:load currentPath="/admin/entradas" />
+		<AdminEntradas client:load />
+	</div>
+</Layout>

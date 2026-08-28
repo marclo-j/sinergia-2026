@@ -1,6 +1,5 @@
 import { Menu } from "lucide-react";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
@@ -12,11 +11,12 @@ const links = [
 ] as const;
 
 export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
-  const { user } = useAuth();
+  const { user, registration, logout } = useAuth();
+  const isPaid = registration?.status === "paid";
   const [open, setOpen] = useState(false);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const signOut = () => {
+    logout();
     window.location.href = "/";
   };
 
@@ -41,16 +41,23 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
           ))}
           {user ? (
             <>
-              <a href="/mi-entrada" className="transition-colors hover:text-accent">
-                Mi entrada
-              </a>
+              {user.role === "admin" && (
+                <a href="/admin/entradas" className="transition-colors hover:text-accent">
+                  Panel
+                </a>
+              )}
+              {isPaid && (
+                <a href="/mi-entrada" className="transition-colors hover:text-accent">
+                  Mi entrada
+                </a>
+              )}
               <Button variant="ghost" size="sm" onClick={signOut}>
                 Salir
               </Button>
             </>
           ) : (
             <a href="/auth" className="transition-colors hover:text-accent">
-              Ingresar
+              Login
             </a>
           )}
         </nav>
@@ -74,9 +81,16 @@ export function SiteHeader({ currentPath = "/" }: { currentPath?: string }) {
           ))}
           {user ? (
             <>
-              <a href="/mi-entrada" className="py-2" onClick={() => setOpen(false)}>
-                Mi entrada
-              </a>
+              {user.role === "admin" && (
+                <a href="/admin/entradas" className="py-2" onClick={() => setOpen(false)}>
+                  Panel
+                </a>
+              )}
+              {isPaid && (
+                <a href="/mi-entrada" className="py-2" onClick={() => setOpen(false)}>
+                  Mi entrada
+                </a>
+              )}
               <button type="button" className="py-2 text-left" onClick={signOut}>
                 Salir
               </button>

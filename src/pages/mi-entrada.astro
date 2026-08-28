@@ -11,7 +11,10 @@ import { MiEntrada } from "@/components/islands/MiEntrada";
   ogTitle="Mi entrada | Sinergia Vol. II"
   ogDescription="Tu QR de acceso y el check de tus materiales."
 >
-	<div class="min-h-screen bg-background">
+	<div class="relative min-h-screen">
+		<div class="surface-antiguo fixed inset-0 -z-20"></div>
+		<div class="crt-scanlines grain-overlay surface-flyer fixed inset-0 -z-10"></div>
+
 		<SiteHeader client:load currentPath="/mi-entrada" />
 
 		<MiEntrada client:load />

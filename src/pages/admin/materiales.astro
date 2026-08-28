@@ -1,0 +1,16 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { AdminNav } from "@/components/AdminNav";
+import { AdminMateriales } from "@/components/islands/AdminMateriales";
+---
+
+<Layout
+  title="Materiales | Panel admin | Sinergia Vol. II"
+  description="Registra la entrega de materiales de cada asistente: fecha, hora y quién los entregó."
+  noindex
+>
+	<div class="admin-scope min-h-screen bg-background">
+		<AdminNav client:load currentPath="/admin/materiales" />
+		<AdminMateriales client:load />
+	</div>
+</Layout>

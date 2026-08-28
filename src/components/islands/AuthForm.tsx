@@ -1,66 +1,45 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase/client";
+import { Eye, EyeOff } from "lucide-react";
+import { login, setToken } from "@/lib/api/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RetroWindow } from "@/components/ui/retro-window";
 
-const schema = z.object({
+const loginSchema = z.object({
   email: z.string().trim().email("Correo inválido").max(255),
-  password: z.string().min(6, "Mínimo 6 caracteres").max(72),
-  fullName: z.string().trim().max(120).optional(),
+  password: z.string().min(1, "Ingresa tu contraseña").max(72),
 });
 
 export function AuthForm() {
   const { user, loading } = useAuth();
-  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) window.location.href = "/inscripcion";
+    if (!loading && user) window.location.href = user.role === "admin" ? "/admin/entradas" : "/inscripcion";
   }, [user, loading]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = schema.safeParse({ email, password, fullName });
+    const parsed = loginSchema.safeParse({ email, password });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Datos inválidos");
       return;
     }
-    if (mode === "signup" && (parsed.data.fullName?.length ?? 0) < 3) {
-      toast.error("Escribe tu nombre completo");
-      return;
-    }
-
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email: parsed.data.email,
-          password: parsed.data.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/inscripcion`,
-            data: { full_name: parsed.data.fullName },
-          },
-        });
-        if (error) throw error;
-        toast.success("Cuenta creada. ¡Continúa con tu inscripción!");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: parsed.data.email,
-          password: parsed.data.password,
-        });
-        if (error) throw error;
-        toast.success("Bienvenido de vuelta");
-      }
-      window.location.href = "/inscripcion";
+      const { token, user } = await login(parsed.data);
+      setToken(token);
+      toast.success("Bienvenido de vuelta");
+      window.location.href = user.role === "admin" ? "/admin/entradas" : "/inscripcion";
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No pudimos completar la operación");
+      toast.error(err instanceof Error ? err.message : "No pudimos iniciar sesión");
     } finally {
       setBusy(false);
     }
@@ -68,59 +47,64 @@ export function AuthForm() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-16">
-      <h1 className="font-display text-3xl">{mode === "login" ? "Ingresa" : "Crea tu cuenta"}</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Necesitas una cuenta para inscribirte, ver tu QR y marcar la entrega de materiales.
+      <p className="font-pixel text-[10px] tracking-widest text-primary">&gt; ACCESO.SYS</p>
+      <h1 className="font-display text-pop mt-2 text-5xl leading-none text-accent">Login</h1>
+      <p className="mt-4 text-sm text-muted-foreground">
+        Ingresa con tu correo y contraseña para ver tu inscripción y tu entrada.
       </p>
 
-      <form onSubmit={submit} className="mt-8 space-y-4">
-        {mode === "signup" && (
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Nombre completo</Label>
-            <Input
-              id="fullName"
-              value={fullName}
-              maxLength={120}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="María Fernández"
-            />
-          </div>
-        )}
-        <div className="space-y-2">
-          <Label htmlFor="email">Correo</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            maxLength={255}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="tucorreo@ejemplo.com"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Contraseña</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            maxLength={72}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <Button type="submit" className="w-full" disabled={busy}>
-          {busy ? "Procesando…" : mode === "login" ? "Ingresar" : "Crear cuenta"}
-        </Button>
-      </form>
-
-      <button
-        type="button"
-        className="mt-6 text-sm underline underline-offset-4"
-        onClick={() => setMode(mode === "login" ? "signup" : "login")}
-      >
-        {mode === "login" ? "No tengo cuenta, quiero registrarme" : "Ya tengo cuenta, ingresar"}
-      </button>
+      <div className="mt-8">
+        <RetroWindow title="LOGIN.EXE">
+          <form onSubmit={submit} className="space-y-4 p-6">
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                maxLength={255}
+                autoComplete="email"
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tucorreo@ejemplo.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  preserveCase
+                  value={password}
+                  maxLength={72}
+                  autoComplete="current-password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pr-9"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+            </div>
+            <Button type="submit" className="font-pixel w-full text-xs tracking-widest" disabled={busy}>
+              {busy ? "CARGANDO…" : ">> INGRESAR"}
+            </Button>
+          </form>
+        </RetroWindow>
+      </div>
 
       <p className="mt-8 text-sm">
+        ¿No tienes cuenta?{" "}
+        <a href="/inscripcion" className="underline underline-offset-4">
+          Inscríbete aquí
+        </a>
+      </p>
+      <p className="mt-2 text-sm">
         <a href="/" className="underline underline-offset-4">
           Volver al inicio
         </a>

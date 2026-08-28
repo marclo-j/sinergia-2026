@@ -1,0 +1,16 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { AdminNav } from "@/components/AdminNav";
+import { AdminEscanear } from "@/components/islands/AdminEscanear";
+---
+
+<Layout
+  title="Escanear | Panel admin | Sinergia Vol. II"
+  description="Escanea el código QR de la entrada con la cámara para validar el ingreso al instante."
+  noindex
+>
+	<div class="admin-scope min-h-screen bg-background">
+		<AdminNav client:load currentPath="/admin/escanear" />
+		<AdminEscanear client:load />
+	</div>
+</Layout>
