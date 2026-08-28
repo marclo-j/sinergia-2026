@@ -229,7 +229,7 @@ export function AdminEscanear() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12">
+    <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
       <h1 className="flex items-center gap-2 text-3xl font-semibold">
         <QrCode className="size-7" /> Escanear entrada
       </h1>
@@ -301,7 +301,7 @@ export function AdminEscanear() {
             <p className="text-sm text-muted-foreground">
               ¿Confirmas el ingreso de <strong className="uppercase">{pendingCheckin.fullName}</strong>?
             </p>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm sm:grid-cols-2">
               <dt className="text-muted-foreground">Código</dt>
               <dd className="font-mono text-xs">{pendingCheckin.ticketCode}</dd>
               <dt className="text-muted-foreground">Asistente</dt>

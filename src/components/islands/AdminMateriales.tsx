@@ -263,8 +263,8 @@ export function AdminMateriales() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12">
-      <div className="flex items-center justify-between gap-4">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-2 text-3xl font-semibold">
           <Package className="size-7" /> Recojo de materiales
         </h1>
@@ -278,7 +278,7 @@ export function AdminMateriales() {
       </p>
 
       <div className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="flex items-center gap-2 text-lg font-medium">
             <QrCode className="size-5" /> Buscar entrada
           </h2>
@@ -332,7 +332,56 @@ export function AdminMateriales() {
         ))}
       </div>
 
-      <div className="mt-6 overflow-x-auto">
+      {filtered.length === 0 && (
+        <p className="mt-6 rounded-lg border border-border p-6 text-center text-muted-foreground">
+          No hay asistentes que coincidan.
+        </p>
+      )}
+
+      {/* Cards: pantallas chicas (< md) */}
+      <div className="mt-6 space-y-3 md:hidden">
+        {pagedRows.map((r) => (
+          <div
+            key={r.id}
+            className={`rounded-lg border border-border p-3 text-sm ${r.materialsPickedUp ? "bg-accent/10" : "bg-muted/30"}`}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-mono text-xs text-muted-foreground">{r.ticketCode}</p>
+                <p className="uppercase">{r.fullName}</p>
+              </div>
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
+                  r.materialsPickedUp ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {r.materialsPickedUp ? "Entregado" : "Pendiente"}
+              </span>
+            </div>
+            <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+              <p>{r.email}</p>
+              <p>{r.phone}</p>
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-border pt-2 text-xs">
+              <dt className="text-muted-foreground">Fecha de entrega</dt>
+              <dd>{r.materialsPickedUp ? formatDate(r.materialsPickedUpAt) : "—"}</dd>
+              <dt className="text-muted-foreground">Entregado por</dt>
+              <dd>{r.materialsDeliveredBy ?? "—"}</dd>
+            </dl>
+            <button
+              className={`mt-3 w-full px-2 py-2 text-xs ${
+                r.materialsPickedUp ? "bg-secondary text-secondary-foreground" : "bg-accent text-accent-foreground"
+              }`}
+              onClick={() => setConfirmRow(r)}
+            >
+              {r.materialsPickedUp ? "Deshacer entrega" : "Marcar entregado"}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabla: md y más grande */}
+      <div className="mt-6 hidden overflow-x-auto md:block">
         <table className="w-full min-w-215 text-sm">
           <thead className="text-left text-xs tracking-wider text-muted-foreground uppercase">
             <tr className="divide-x divide-border">
@@ -383,19 +432,12 @@ export function AdminMateriales() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                  No hay asistentes que coincidan.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
 
       {filtered.length > 0 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <p>
             Página {page} de {totalPages} · {filtered.length} asistentes
           </p>
@@ -464,7 +506,7 @@ export function AdminMateriales() {
                 <strong className="uppercase">{confirmRow.fullName}</strong>?
               </p>
             )}
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm sm:grid-cols-2">
               <dt className="text-muted-foreground">Código</dt>
               <dd className="font-mono text-xs">{confirmRow.ticketCode}</dd>
               <dt className="text-muted-foreground">Correo</dt>

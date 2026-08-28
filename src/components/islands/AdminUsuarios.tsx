@@ -98,7 +98,7 @@ export function AdminUsuarios() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
       <h1 className="text-3xl font-semibold">Usuarios</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Datos personales y ministeriales de cada persona registrada ({rows.length} en total).
@@ -114,7 +114,48 @@ export function AdminUsuarios() {
         />
       </div>
 
-      <div className="mt-6 overflow-x-auto">
+      {filtered.length === 0 && (
+        <p className="mt-6 rounded-lg border border-border p-6 text-center text-muted-foreground">
+          No hay usuarios que coincidan con la búsqueda.
+        </p>
+      )}
+
+      {/* Cards: pantallas chicas (< md) */}
+      <div className="mt-6 space-y-3 md:hidden">
+        {pagedRows.map((r) => (
+          <div key={r.id} className="rounded-lg border border-border bg-card p-3 text-sm">
+            <div className="flex items-start justify-between gap-2">
+              <p className="min-w-0">{r.fullName}</p>
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
+                  r.role === "admin" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {r.role}
+              </span>
+            </div>
+            <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+              <p className="uppercase">
+                {r.tipoDocumento} {r.numeroDocumento}
+              </p>
+              <p>{r.email}</p>
+              <p>{r.phone}</p>
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-border pt-2 text-xs">
+              <dt className="text-muted-foreground">Iglesia</dt>
+              <dd>{r.iglesia ?? "—"}</dd>
+              <dt className="text-muted-foreground">Ministerio</dt>
+              <dd>{r.ministerio ?? "—"}</dd>
+            </dl>
+            <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => openAccessDetail(r)}>
+              <QrCode className="size-4" /> Detalle de acceso
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabla: md y más grande */}
+      <div className="mt-6 hidden overflow-x-auto md:block">
         <table className="w-full min-w-245 text-sm">
           <thead className="text-left text-xs tracking-wider text-muted-foreground uppercase">
             <tr>
@@ -156,19 +197,12 @@ export function AdminUsuarios() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={7} className="p-6 text-center text-muted-foreground">
-                  No hay usuarios que coincidan con la búsqueda.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
 
       {filtered.length > 0 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <p>
             Página {page} de {totalPages} · {filtered.length} usuarios
           </p>
@@ -199,7 +233,7 @@ export function AdminUsuarios() {
             <p className="text-sm text-muted-foreground">
               Estado del ingreso de <strong className="uppercase">{accessRow.fullName}</strong>.
             </p>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm sm:grid-cols-2">
               <dt className="text-muted-foreground">Código</dt>
               <dd className="font-mono text-xs">{accessRow.ticketCode}</dd>
               <dt className="text-muted-foreground">Estado de acceso</dt>

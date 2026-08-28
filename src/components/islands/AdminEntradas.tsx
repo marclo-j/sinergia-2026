@@ -288,8 +288,8 @@ export function AdminEntradas() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12">
-      <div className="flex items-center justify-between gap-4">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-semibold">Entradas</h1>
         <Button variant="outline" size="sm" onClick={handleReload} disabled={reloading}>
           <RefreshCw className={`size-4 ${reloading ? "animate-spin" : ""}`} />
@@ -338,7 +338,104 @@ export function AdminEntradas() {
         ))}
       </div>
 
-      <div className="mt-4 overflow-x-auto">
+      {filteredRows.length === 0 && (
+        <p className="mt-6 rounded-lg border border-border p-6 text-center text-muted-foreground">
+          No hay inscripciones en esta categoría.
+        </p>
+      )}
+
+      {/* Cards: pantallas chicas (< md) */}
+      <div className="mt-4 space-y-3 md:hidden">
+        {pagedRows.map((r) => (
+          <div key={r.id} className={`rounded-lg border border-border p-3 text-sm ${statusRowClass[r.status]}`}>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-mono text-xs text-muted-foreground">{r.ticketCode}</p>
+                <p className="uppercase">{r.fullName}</p>
+              </div>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${statusBadgeClass[r.status]}`}>
+                {statusLabel[r.status]}
+              </span>
+            </div>
+            <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+              <p>{r.email}</p>
+              <p>{r.phone}</p>
+              <p className="uppercase">
+                {r.tipoDocumento} {r.numeroDocumento}
+              </p>
+            </div>
+
+            <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-border pt-2 text-xs">
+              <dt className="text-muted-foreground">Pago</dt>
+              <dd>{r.paymentMethod ?? "—"}</dd>
+              {r.paymentReference && (
+                <>
+                  <dt className="text-muted-foreground">Observación</dt>
+                  <dd>{r.paymentReference}</dd>
+                </>
+              )}
+              <dt className="text-muted-foreground">Inscripción</dt>
+              <dd>{formatDate(r.createdAt)}</dd>
+              {r.paymentSubmittedAt && (
+                <>
+                  <dt className="text-muted-foreground">Envío de pago</dt>
+                  <dd>{formatDate(r.paymentSubmittedAt)}</dd>
+                </>
+              )}
+              {r.physicalPaymentApprovedAt ? (
+                <>
+                  <dt className="text-muted-foreground">Aprob. efectivo</dt>
+                  <dd>{formatDate(r.physicalPaymentApprovedAt)}</dd>
+                </>
+              ) : (
+                r.approvedAt && (
+                  <>
+                    <dt className="text-muted-foreground">Aprobación</dt>
+                    <dd>{formatDate(r.approvedAt)}</dd>
+                  </>
+                )
+              )}
+            </dl>
+            {r.hasReceipt && (
+              <button
+                className="mt-2 text-xs underline disabled:opacity-50"
+                disabled={receiptLoading}
+                onClick={() => viewReceipt(r)}
+              >
+                Ver comprobante
+              </button>
+            )}
+
+            <div className="mt-3 flex flex-col items-stretch gap-2 border-t border-border pt-3">
+              {r.status !== "paid" && (
+                <button
+                  className="flex items-center justify-center gap-1 bg-accent px-2 py-2 text-xs text-accent-foreground"
+                  onClick={() => setConfirm({ type: "paid", row: r })}
+                >
+                  <Check className="size-3.5" /> APROBAR COMO PAGO DIGITAL
+                </button>
+              )}
+              {r.status !== "paid" && (
+                <button
+                  className="flex items-center justify-center gap-1 bg-secondary px-2 py-2 text-xs text-secondary-foreground"
+                  onClick={() => openPhysicalPaymentDialog(r)}
+                >
+                  <Banknote className="size-3.5" /> APROBAR COMO PAGO FÍSICO
+                </button>
+              )}
+              <button
+                className="flex items-center justify-center gap-1 bg-destructive px-2 py-2 text-xs text-destructive-foreground"
+                onClick={() => setConfirm({ type: "rejected", row: r })}
+              >
+                <X className="size-3.5" /> RECHAZAR
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabla: md y más grande */}
+      <div className="mt-4 hidden overflow-x-auto md:block">
         <table className="w-full min-w-205 text-sm">
           <thead className="text-left text-xs tracking-wider text-muted-foreground uppercase">
             <tr className="divide-x divide-border">
@@ -351,13 +448,6 @@ export function AdminEntradas() {
             </tr>
           </thead>
           <tbody>
-            {filteredRows.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                  No hay inscripciones en esta categoría.
-                </td>
-              </tr>
-            )}
             {pagedRows.map((r) => (
               <tr key={r.id} className={`divide-x divide-border border-t border-border ${statusRowClass[r.status]}`}>
                 <td className="p-2 font-mono text-xs">{r.ticketCode}</td>
@@ -433,7 +523,7 @@ export function AdminEntradas() {
       </div>
 
       {filteredRows.length > 0 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <p>
             Página {page} de {totalPages} · {filteredRows.length} inscripciones
           </p>
@@ -468,7 +558,7 @@ export function AdminEntradas() {
             <p className="text-sm text-muted-foreground">
               {confirmCopy[confirm.type].question} <strong className="uppercase">{confirm.row.fullName}</strong>?
             </p>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm sm:grid-cols-2">
               <dt className="text-muted-foreground">Asistente</dt>
               <dd className="uppercase">{confirm.row.fullName}</dd>
               <dt className="text-muted-foreground">Correo</dt>
@@ -481,7 +571,7 @@ export function AdminEntradas() {
               </dd>
             </dl>
             {confirm.type === "paid" && !needsManualMethod && (
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+              <dl className="grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm sm:grid-cols-2">
                 <dt className="text-muted-foreground">Método de pago</dt>
                 <dd>{confirm.row.paymentMethod}</dd>
                 <dt className="text-muted-foreground">Observación</dt>
@@ -558,7 +648,7 @@ export function AdminEntradas() {
               ¿Confirmas que quieres aprobar el pago físico de{" "}
               <strong className="uppercase">{physicalPaymentRow.fullName}</strong>?
             </p>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm sm:grid-cols-2">
               <dt className="text-muted-foreground">Asistente</dt>
               <dd className="uppercase">{physicalPaymentRow.fullName}</dd>
               <dt className="text-muted-foreground">Correo</dt>
@@ -605,7 +695,7 @@ export function AdminEntradas() {
             <p className="text-sm text-muted-foreground">
               ¿Confirmas el ingreso de <strong className="uppercase">{pendingCheckin.fullName}</strong>?
             </p>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm sm:grid-cols-2">
               <dt className="text-muted-foreground">Código</dt>
               <dd className="font-mono text-xs">{pendingCheckin.ticketCode}</dd>
               <dt className="text-muted-foreground">Asistente</dt>
@@ -650,7 +740,7 @@ export function AdminEntradas() {
       <Dialog open={receipt !== null} onClose={closeReceipt} title="Comprobante de pago">
         {receipt && (
           <div className="space-y-3">
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 rounded-md border border-border p-3 text-sm sm:grid-cols-2">
               <dt className="text-muted-foreground">Asistente</dt>
               <dd>{receipt.row.fullName}</dd>
               <dt className="text-muted-foreground">Correo</dt>
