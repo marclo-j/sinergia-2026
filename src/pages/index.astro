@@ -45,7 +45,7 @@ const days = [
 
 			<div class="relative z-10 flex min-h-[calc(985px-10rem)] flex-col justify-end gap-10 pl-4 pr-4 pt-10 pb-4 md:pl-10 md:pr-10 md:pt-16 md:pb-6">
 				<div class="flex flex-col gap-6">
-					<h1 class="font-display text-5xl leading-[0.9] text-primary-foreground md:text-7xl lg:text-8xl">
+					<h1 class="font-bold text-5xl leading-[0.9] text-primary-foreground md:text-7xl lg:text-8xl">
 						A través<br />del tiempo
 					</h1>
 					<p class="max-w-md text-3xl font-medium text-primary-foreground uppercase">
@@ -57,8 +57,8 @@ const days = [
 					>
 						Quiero ser parte <ArrowRight className="size-8" />
 					</a>
-					<p class="font-display text-2xl text-primary-foreground uppercase">
-						Preventa con cupos limitados
+					<p class="font-semibold text-2xl text-primary-foreground uppercase">
+						¡Preventa con cupos limitados!
 					</p>
 				</div>
 			</div>
@@ -67,15 +67,15 @@ const days = [
 				{/* Octubre — compartido entre 30 y 31 */}
 				<div class="flex items-end gap-3">
 					<div class="flex flex-col gap-5 items-end">
-						<span class="font-display text-6xl md:text-8xl leading-none">30</span>
-						<span class="font-display text-6xl md:text-8xl leading-none">31</span>
+						<span class="font-bold text-6xl md:text-8xl leading-none">30</span>
+						<span class="font-bold text-6xl md:text-8xl leading-none">31</span>
 					</div>
-					<span class="vertical-text-cc text-xl md:text-3xl tracking-[0.25em] uppercase">Octubre</span>
+					<span class="font-semibold vertical-text-cc text-xl md:text-3xl tracking-[0.25em] uppercase">Octubre</span>
 				</div>
 				{/* Noviembre — solo 01 */}
 				<div class="flex gap-2">
-					<span class="font-display text-6xl md:text-8xl leading-none">01</span>
-					<span class="vertical-text-cc text-xl md:text-3xl tracking-[0.25em] uppercase">Noviembre</span>
+					<span class="font-bold text-6xl md:text-8xl leading-none">01</span>
+					<span class="font-semibold vertical-text-cc text-xl md:text-3xl tracking-[0.25em] uppercase">Noviembre</span>
 				</div>
 			</div>
 		</section>
@@ -108,12 +108,12 @@ const days = [
 						Vol. II — A través del tiempo
 					</p>
 				</span>
-					<p class="mt-6 text-lg text-kraft-foreground">
+					<p class="mt-6 text-xl text-kraft-foreground">
 						Una conferencia que nos invita a mirar más allá de las tendencias, los estilos y las
 						generaciones. La adoración cambia de formas, pero su esencia permanece:{" "}
 						<strong class="text-primary">Jesús sigue siendo el centro.</strong>
 					</p>
-					<p class="mt-5 text-lg text-kraft-foreground">
+					<p class="mt-5 text-xl text-kraft-foreground">
 						Durante tres días nos reuniremos para aprender, adorar, conectar y recordar que cuando
 						diferentes generaciones, talentos y corazones se unen con un mismo propósito, ocurre
 						algo poderoso.
@@ -126,64 +126,57 @@ const days = [
 	</section>
 
 		<!-- DÍAS -->
-		<section class="grain-overlay relative surface-heat">
-			<div class="relative z-10 mx-auto max-w-6xl px-4 py-16">
+		<section class="relative bg-[url('/hero/bg.png')] bg-cover bg-center">
+			<div class="relative z-10 mx-auto max-w-7xl px-4 py-16">
 				<div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-					<h2 class="font-display text-4xl leading-none text-primary-foreground md:text-5xl">
+					<h2 class="font-extrabold text-4xl leading-none text-primary-foreground md:text-6xl">
 						3 días que<br />nos inspiran
 					</h2>
-					<p class="max-w-sm text-primary-foreground/90 md:text-right">
+					<p class="max-w-sm text-primary-foreground/90 md:text-right text-xl font-semibold">
 						→ Cada día nos recuerda que el Señor fue, es y seguirá siendo fiel
 					</p>
 				</div>
 
-				<div class="mt-10 grid gap-5 md:grid-cols-3">
+				<div class="mt-10 lg:grid gap-14 space-y-3 lg:space-y-0 lg:grid-cols-3">
 					{days.map((d) => (
-						<article class="flex min-h-64 flex-col bg-ink/70 p-6">
-							<p class="font-display text-lg text-accent">{d.label}</p>
-							<p class="mt-2 text-background/90">{d.text}</p>
+						<article class="flex lg:size-[360px] flex-col bg-[#102a49]/70 p-6">
+							<p class="font-bold text-4xl text-[#ffbb5d]">{d.label}</p>
+							<p class="mt-2 text-lg text-background/90">{d.text}</p>
 							<div class="mt-auto flex items-end justify-end gap-2 pt-8 text-background">
-								<span class="font-display text-6xl">{d.n}</span>
-								<span class="vertical-text pb-1 text-xs tracking-[0.25em] uppercase">{d.month}</span>
+								<span class="font-bold text-8xl">{d.n}</span>
+								<span class="vertical-text-cc pb-1 font-medium text-3xl uppercase">{d.month}</span>
 							</div>
 						</article>
 					))}
 				</div>
 
-				<a
+				<!-- <a
 					href="/programa"
-					class="mt-8 inline-flex items-center gap-2 font-display text-sm text-primary-foreground underline underline-offset-4"
+					class="mt-8 inline-flex items-center gap-2 font-semibold text-xl text-primary-foreground underline underline-offset-4"
 				>
 					Ver el programa completo <ArrowRight className="size-4" />
-				</a>
+				</a> -->
 			</div>
 		</section>
 
 		<!-- PILARES -->
-		<section class="bg-accent">
-			<div class="mx-auto grid max-w-6xl gap-4 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
+		<section class="relative bg-[url('/pilares/pilares.png')] bg-cover bg-center">
+			<div class="mx-auto grid max-w-7xl gap-7 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
 				{pillars.map((p) => (
-					<article class="border-2 border-background/50 bg-accent p-5">
-						<p class="text-sm text-accent-foreground/70">{p.n}</p>
-						<h3 class="mt-2 font-display text-xl text-primary">{p.title}</h3>
-						<p class="mt-2 text-sm text-accent-foreground">{p.text}</p>
+					<article class="bg-[#f8af48]/80 p-5">
+						<p class="text-xl font-semibold text-white">{p.n}</p>
+						<h3 class="mt-2 text-3xl font-bold text-primary">{p.title}</h3>
+						<p class="mt-2 text-lg font-medium text-primary">{p.text}</p>
 					</article>
 				))}
 			</div>
 		</section>
 
 		<!-- CTA -->
-		<section class="grain-overlay relative overflow-hidden bg-primary">
-			<img
-				src={texture.src}
-				alt=""
-				loading="lazy"
-				width={1920}
-				height={1088}
-				class="absolute inset-0 size-full object-cover opacity-70"
-			/>
-			<div class="relative z-10 mx-auto max-w-6xl px-4 py-20">
-				<h2 class="font-display text-4xl leading-none text-primary-foreground md:text-6xl">
+		<section class="relative bg-[url('/hero/bg.png')] bg-cover bg-center">
+			
+			<div class="relative z-10 mx-auto max-w-7xl px-4 py-20">
+				<h2 class="font-bold text-4xl leading-none text-primary-foreground md:text-6xl">
 					¿Estás listo para<br />ser parte?
 				</h2>
 				<div class="mt-8 flex flex-wrap gap-3">
@@ -193,12 +186,12 @@ const days = [
 					>
 						Inscribirme ahora <ArrowRight className="size-4" />
 					</a>
-					<a
+					<!-- <a
 						href="/merch"
 						class="inline-flex items-center gap-2 border-2 border-primary-foreground px-6 py-3 font-display text-sm text-primary-foreground"
 					>
 						Ver el merch
-					</a>
+					</a> -->
 				</div>
 			</div>
 		</section>
